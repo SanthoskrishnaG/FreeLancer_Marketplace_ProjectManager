@@ -59,6 +59,15 @@ export const Navbar: React.FC = () => {
                 <Briefcase className="w-3.5 h-3.5 text-purple-400" /> My Projects
               </Link>
             )}
+
+            {isAuthenticated && user?.role === 'FREELANCER' && (
+              <Link
+                to="/my-proposals"
+                className="text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors"
+              >
+                <Briefcase className="w-3.5 h-3.5 text-brand-400" /> My Proposals
+              </Link>
+            )}
           </nav>
 
           {/* Right Action / Auth Profile */}

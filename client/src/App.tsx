@@ -18,6 +18,8 @@ import {
   FreelancersDirectoryPage,
   FreelancerProfilePage,
   ProfileSettingsPage,
+  MyProposalsPage,
+  ClientProjectProposalsPage,
   NotFoundPage,
 } from './pages/index.js';
 
@@ -70,10 +72,28 @@ export const App: React.FC = () => {
                   }
                 />
                 <Route
+                  path="/projects/:id/proposals"
+                  element={
+                    <ProtectedRoute allowedRoles={['CLIENT', 'ADMIN']}>
+                      <ClientProjectProposalsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/my-projects"
                   element={
                     <ProtectedRoute allowedRoles={['CLIENT', 'ADMIN']}>
                       <MyProjectsPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Protected Freelancer Proposal Management Routes */}
+                <Route
+                  path="/my-proposals"
+                  element={
+                    <ProtectedRoute allowedRoles={['FREELANCER', 'ADMIN']}>
+                      <MyProposalsPage />
                     </ProtectedRoute>
                   }
                 />

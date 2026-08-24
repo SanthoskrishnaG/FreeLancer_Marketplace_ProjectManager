@@ -23,6 +23,7 @@ import {
   ListChecks,
 } from 'lucide-react';
 import { AIMilestoneGeneratorModal } from '../components/AIMilestoneGeneratorModal.js';
+import { SubmitProposalModal } from '../components/SubmitProposalModal.js';
 
 export const ProjectDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +32,7 @@ export const ProjectDetailsPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
 
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isSubmitProposalOpen, setIsSubmitProposalOpen] = useState(false);
 
   const {
     data: project,
@@ -148,18 +150,26 @@ export const ProjectDetailsPage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-3">
             {isOwner ? (
               <>
+                <Link
+                  to={`/projects/${project.id}/proposals`}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 transition-all shadow-lg shadow-emerald-500/20"
+                >
+                  <Users className="w-4 h-4" /> Review Proposals (
+                  {project._count?.proposals || project.proposalCount || 0})
+                </Link>
+
                 <button
                   onClick={() => setIsAIModalOpen(true)}
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-brand-400 to-emerald-400 hover:from-brand-300 hover:to-emerald-300 transition-all shadow-lg shadow-brand-500/20 active:scale-95"
                 >
-                  <Sparkles className="w-4 h-4" /> AI Generate Milestones
+                  <Sparkles className="w-4 h-4" /> AI Milestones
                 </button>
 
                 <Link
                   to={`/projects/${project.id}/edit`}
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 transition-colors"
                 >
-                  <Edit className="w-4 h-4" /> Edit Project
+                  <Edit className="w-4 h-4" /> Edit
                 </Link>
 
                 {project.status === 'DRAFT' && (
@@ -200,13 +210,20 @@ export const ProjectDetailsPage: React.FC = () => {
                   </button>
                 )}
 
-                <button
-                  disabled
-                  title="Proposal submission will be implemented in Phase 4"
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-brand-400/60 cursor-not-allowed opacity-80"
-                >
-                  Submit Proposal (Phase 4)
-                </button>
+                {project.status === 'PUBLISHED' && (
+                  <button
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        navigate('/login');
+                      } else {
+                        setIsSubmitProposalOpen(true);
+                      }
+                    }}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-brand-400 hover:bg-brand-300 active:scale-95 transition-all shadow-lg shadow-brand-500/20"
+                  >
+                    <CheckCircle2 className="w-4 h-4" /> Submit Proposal
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -458,6 +475,16 @@ export const ProjectDetailsPage: React.FC = () => {
         isOpen={isAIModalOpen}
         onClose={() => setIsAIModalOpen(false)}
         onMilestonesSaved={() => {
+          queryClient.invalidateQueries({ queryKey: ['project', id] });
+        }}
+      />
+
+      {/* Submit Proposal Modal */}
+      <SubmitProposalModal
+        project={project}
+        isOpen={isSubmitProposalOpen}
+        onClose={() => setIsSubmitProposalOpen(false)}
+        onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['project', id] });
         }}
       />

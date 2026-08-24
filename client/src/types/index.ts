@@ -3,6 +3,8 @@ export type ExperienceLevel = 'ENTRY' | 'INTERMEDIATE' | 'EXPERT';
 export type ProjectStatus =
   'DRAFT' | 'PUBLISHED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'DISPUTED' | 'ARCHIVED';
 
+export type ProposalStatus = 'PENDING' | 'SHORTLISTED' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN';
+
 export interface Category {
   id: string;
   name: string;
@@ -101,6 +103,47 @@ export interface Milestone {
   amount: string | number;
   status: 'PENDING' | 'IN_PROGRESS' | 'SUBMITTED' | 'APPROVED' | 'RELEASED' | 'CANCELLED';
   dueDate?: string | null;
+}
+
+export interface ProposalMilestonePricing {
+  title: string;
+  amount: number;
+  duration?: string;
+}
+
+export interface Proposal {
+  id: string;
+  projectId: string;
+  freelancerProfileId: string;
+  coverLetter: string;
+  bidAmount: string | number;
+  estimatedDuration?: string | null;
+  milestonePricing?: ProposalMilestonePricing[] | null;
+  attachments?: Array<{ name: string; url: string; size?: number }> | null;
+  status: ProposalStatus;
+  createdAt: string;
+  updatedAt: string;
+  project?: {
+    id: string;
+    title: string;
+    budget: string | number;
+    budgetType: 'FIXED' | 'HOURLY';
+    status: ProjectStatus;
+    category?: Category | null;
+    skills?: Array<{ skill: Skill }>;
+    client?: {
+      id: string;
+      companyName?: string | null;
+      user: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        avatarUrl?: string | null;
+        location?: string | null;
+      };
+    };
+  };
+  freelancerProfile?: FreelancerProfile;
 }
 
 export interface ProjectSkill {

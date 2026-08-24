@@ -33,6 +33,7 @@ enum ProjectStatus {
 
 enum ProposalStatus {
   PENDING
+  SHORTLISTED
   ACCEPTED
   REJECTED
   WITHDRAWN
@@ -341,6 +342,8 @@ model Proposal {
   coverLetter         String
   bidAmount           Decimal           @db.Decimal(12, 2)
   estimatedDuration   String?
+  milestonePricing    Json?             // Array of { title, amount, duration }
+  attachments         Json?             // Array of file URLs
   status              ProposalStatus    @default(PENDING)
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
@@ -349,6 +352,7 @@ model Proposal {
   @@index([projectId])
   @@index([freelancerProfileId])
   @@index([status])
+  @@index([projectId, status])
 }
 
 // ----------------------------------------------------

@@ -6,3 +6,5 @@ export * from './ProjectCard.js';
 export * from './ProjectFilterSidebar.js';
 export * from './FreelancerCard.js';
 export * from './AIMilestoneGeneratorModal.js';
+export * from './SubmitProposalModal.js';
+export * from './ProposalDetailsModal.js';
