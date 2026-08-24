@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import globals from 'globals';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import prettierPlugin from 'eslint-plugin-prettier';
@@ -7,7 +8,7 @@ import prettierConfig from 'eslint-config-prettier';
 export default [
   js.configs.recommended,
   {
-    files: ['src/**/*.ts'],
+    files: ['src/**/*.ts', 'prisma/**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -15,8 +16,8 @@ export default [
         sourceType: 'module',
       },
       globals: {
-        process: 'readonly',
-        console: 'readonly',
+        ...globals.node,
+        ...globals.es2022,
       },
     },
     plugins: {

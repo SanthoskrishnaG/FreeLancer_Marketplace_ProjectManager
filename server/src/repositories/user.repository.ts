@@ -98,7 +98,10 @@ export class UserRepository {
     });
   }
 
-  public static async updateRefreshToken(userId: string, refreshToken: string | null): Promise<User> {
+  public static async updateRefreshToken(
+    userId: string,
+    refreshToken: string | null
+  ): Promise<User> {
     return prisma.user.update({
       where: { id: userId },
       data: { refreshToken },

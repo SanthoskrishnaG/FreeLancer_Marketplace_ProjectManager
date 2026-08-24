@@ -5,9 +5,8 @@ import { envConfig } from '../config/env.config.js';
 
 export const errorHandler: ErrorRequestHandler = (
   err: Error | ApiError,
-  req: Request,
+  _req: Request,
   res: Response,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _next: NextFunction
 ): void => {
   if (err instanceof ApiError) {

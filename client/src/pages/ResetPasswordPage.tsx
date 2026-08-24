@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { resetPasswordApi } from '../api/auth.api.js';
 import { Lock, CheckCircle2, AlertCircle, Loader2, KeyRound } from 'lucide-react';
+import axios from 'axios';
 
 export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -31,12 +32,16 @@ export const ResetPasswordPage: React.FC = () => {
       setTimeout(() => {
         navigate('/login');
       }, 3000);
-    } catch (err: any) {
-      setError(
-        err.response?.data?.details?.[0]?.message ||
-          err.response?.data?.message ||
-          'Failed to reset password. The link might be expired.'
-      );
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.details?.[0]?.message ||
+            err.response?.data?.message ||
+            'Failed to reset password. The link might be expired.'
+        );
+      } else {
+        setError('Failed to reset password. The link might be expired.');
+      }
     } finally {
       setIsSubmitting(false);
     }

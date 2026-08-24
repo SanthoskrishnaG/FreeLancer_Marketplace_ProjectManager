@@ -38,8 +38,8 @@ export const DashboardPage: React.FC = () => {
                     user.role === 'CLIENT'
                       ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
                       : user.role === 'FREELANCER'
-                      ? 'bg-brand-500/10 border-brand-500/20 text-brand-400'
-                      : 'bg-purple-500/10 border-purple-500/20 text-purple-400'
+                        ? 'bg-brand-500/10 border-brand-500/20 text-brand-400'
+                        : 'bg-purple-500/10 border-purple-500/20 text-purple-400'
                   }`}
                 >
                   {user.role}
@@ -190,9 +190,7 @@ export const DashboardPage: React.FC = () => {
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-white">
-              Phase 2 Authentication Initialized
-            </h4>
+            <h4 className="text-sm font-semibold text-white">Phase 2 Authentication Initialized</h4>
             <p className="text-xs text-slate-400">
               JWT tokens, refresh rotation, HTTP-only cookies, and role access are fully active.
             </p>

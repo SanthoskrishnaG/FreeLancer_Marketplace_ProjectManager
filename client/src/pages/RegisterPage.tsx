@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
-import { Briefcase, Building2, Code2, Lock, Mail, User, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import {
+  Briefcase,
+  Building2,
+  Code2,
+  Lock,
+  Mail,
+  User,
+  AlertCircle,
+  Loader2,
+  ArrowRight,
+} from 'lucide-react';
+import axios from 'axios';
 
 export const RegisterPage: React.FC = () => {
   const { register } = useAuth();
@@ -33,12 +44,16 @@ export const RegisterPage: React.FC = () => {
         title: role === 'FREELANCER' ? title : undefined,
       });
       navigate('/dashboard', { replace: true });
-    } catch (err: any) {
-      const msg =
-        err.response?.data?.details?.[0]?.message ||
-        err.response?.data?.message ||
-        'Registration failed. Please check your inputs.';
-      setError(msg);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const msg =
+          err.response?.data?.details?.[0]?.message ||
+          err.response?.data?.message ||
+          'Registration failed. Please check your inputs.';
+        setError(msg);
+      } else {
+        setError('Registration failed. Please check your inputs.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -66,8 +81,7 @@ export const RegisterPage: React.FC = () => {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Building2 className="w-4 h-4" />
-            I Want to Hire
+            <Building2 className="w-4 h-4" />I Want to Hire
           </button>
           <button
             type="button"
@@ -78,8 +92,7 @@ export const RegisterPage: React.FC = () => {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Code2 className="w-4 h-4" />
-            I Want to Work
+            <Code2 className="w-4 h-4" />I Want to Work
           </button>
         </div>
 
@@ -93,7 +106,9 @@ export const RegisterPage: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">First Name</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                First Name
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                   <User className="w-4 h-4" />
@@ -123,7 +138,9 @@ export const RegisterPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              Email Address
+            </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                 <Mail className="w-4 h-4" />

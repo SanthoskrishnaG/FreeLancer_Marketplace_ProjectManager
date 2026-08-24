@@ -15,7 +15,11 @@ const router = Router();
 router.post('/register', validateRequest(registerSchema), AuthController.register);
 router.post('/login', validateRequest(loginSchema), AuthController.login);
 router.post('/refresh', AuthController.refresh);
-router.post('/forgot-password', validateRequest(forgotPasswordSchema), AuthController.forgotPassword);
+router.post(
+  '/forgot-password',
+  validateRequest(forgotPasswordSchema),
+  AuthController.forgotPassword
+);
 router.post('/reset-password', validateRequest(resetPasswordSchema), AuthController.resetPassword);
 
 // Protected Auth Endpoints

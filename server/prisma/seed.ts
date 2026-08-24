@@ -1,5 +1,5 @@
 import { PrismaClient, UserRole, ProjectStatus } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -162,7 +162,8 @@ async function main() {
     data: {
       name: 'Mobile App Development',
       slug: 'mobile-development',
-      description: 'Native and cross-platform apps for iOS and Android using Flutter & React Native.',
+      description:
+        'Native and cross-platform apps for iOS and Android using Flutter & React Native.',
     },
   });
 

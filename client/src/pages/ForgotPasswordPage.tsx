@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { forgotPasswordApi } from '../api/auth.api.js';
 import { Mail, CheckCircle2, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
+import axios from 'axios';
 
 export const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -18,11 +19,16 @@ export const ForgotPasswordPage: React.FC = () => {
     try {
       const res = await forgotPasswordApi(email);
       setSubmitted(true);
-      if ((res.data as any)?.resetToken) {
-        setDemoToken((res.data as any).resetToken);
+      const resData = res.data as { resetToken?: string } | undefined;
+      if (resData?.resetToken) {
+        setDemoToken(resData.resetToken);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to request password reset');
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Failed to request password reset');
+      }
     } finally {
       setIsSubmitting(false);
     }

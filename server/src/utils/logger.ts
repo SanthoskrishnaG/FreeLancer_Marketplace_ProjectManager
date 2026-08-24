@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 export const logger = {
   info: (message: string, ...args: unknown[]) => {
     console.log(`[INFO] ${new Date().toISOString()} - ${message}`, ...args);

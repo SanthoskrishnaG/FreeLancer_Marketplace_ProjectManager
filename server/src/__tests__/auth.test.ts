@@ -129,6 +129,7 @@ describe('Authentication & Security Suite', () => {
         },
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.spyOn(UserRepository, 'findByIdWithProfile').mockResolvedValue(mockUser as any);
 
       const token = signAccessToken({
@@ -137,9 +138,7 @@ describe('Authentication & Security Suite', () => {
         role: mockUser.role,
       });
 
-      const res = await request(app)
-        .get('/api/auth/me')
-        .set('Authorization', `Bearer ${token}`);
+      const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);

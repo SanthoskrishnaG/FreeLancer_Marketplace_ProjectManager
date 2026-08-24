@@ -8,11 +8,7 @@ import {
 } from '../utils/jwt.util.js';
 import { generateRandomToken } from '../utils/token.util.js';
 import { ApiError } from '../utils/api-error.js';
-import {
-  RegisterInput,
-  LoginInput,
-  ResetPasswordInput,
-} from '../validators/auth.validator.js';
+import { RegisterInput, LoginInput, ResetPasswordInput } from '../validators/auth.validator.js';
 import { UserRole } from '@prisma/client';
 import { logger } from '../utils/logger.js';
 

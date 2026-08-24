@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
 import { Briefcase, Lock, Mail, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import axios from 'axios';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
@@ -23,9 +24,12 @@ export const LoginPage: React.FC = () => {
     try {
       await login({ email, password });
       navigate(from, { replace: true });
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Invalid email or password';
-      setError(msg);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Invalid email or password');
+      }
     } finally {
       setIsSubmitting(false);
     }

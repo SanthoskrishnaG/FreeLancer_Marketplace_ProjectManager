@@ -112,12 +112,14 @@ export class AuthController {
     try {
       const result = await AuthService.forgotPassword(req.body.email);
 
-      res.status(200).json(
-        ApiResponse.success(
-          envConfig.isDevelopment ? { resetToken: result.resetToken } : null,
-          'If an account exists with this email, password reset instructions have been dispatched.'
-        )
-      );
+      res
+        .status(200)
+        .json(
+          ApiResponse.success(
+            envConfig.isDevelopment ? { resetToken: result.resetToken } : null,
+            'If an account exists with this email, password reset instructions have been dispatched.'
+          )
+        );
     } catch (error) {
       next(error);
     }
