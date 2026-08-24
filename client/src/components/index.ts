@@ -2,3 +2,7 @@ export * from './Navbar.js';
 export * from './Footer.js';
 export * from './HealthBadge.js';
 export * from './ProtectedRoute.js';
+export * from './ProjectCard.js';
+export * from './ProjectFilterSidebar.js';
+export * from './FreelancerCard.js';
+export * from './AIMilestoneGeneratorModal.js';

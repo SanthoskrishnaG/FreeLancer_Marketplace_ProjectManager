@@ -15,6 +15,12 @@ enum UserRole {
   ADMIN
 }
 
+enum ExperienceLevel {
+  ENTRY
+  INTERMEDIATE
+  EXPERT
+}
+
 enum ProjectStatus {
   DRAFT
   PUBLISHED
@@ -102,6 +108,7 @@ model User {
   refreshToken          String?
   avatarUrl             String?
   phoneNumber           String?
+  location              String?
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
 
@@ -116,6 +123,7 @@ model User {
   disputesInitiated     Dispute[]          @relation("InitiatedDisputes")
   uploadedFiles         File[]
   auditLogs             AuditLog[]
+  bookmarks             Bookmark[]
 
   @@index([email])
   @@index([role])
@@ -127,7 +135,9 @@ model ClientProfile {
   user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   companyName    String?
   companyWebsite String?
+  logoUrl        String?
   description    String?
+  industry       String?
   country        String?
   totalSpent     Decimal    @default(0.00) @db.Decimal(12, 2)
   rating         Decimal    @default(0.00) @db.Decimal(3, 2)
@@ -140,6 +150,7 @@ model ClientProfile {
   contracts      Contract[]
 
   @@index([userId])
+  @@index([companyName])
 }
 
 model FreelancerProfile {
@@ -150,7 +161,10 @@ model FreelancerProfile {
   bio             String?
   hourlyRate      Decimal?          @db.Decimal(10, 2)
   experienceYears Int?              @default(0)
+  experienceLevel ExperienceLevel   @default(INTERMEDIATE)
   country         String?
+  languages       String[]          @default(["English"])
+  portfolio       Json?             // Array of { title, description, url, imageUrl }
   totalEarned     Decimal           @default(0.00) @db.Decimal(12, 2)
   rating          Decimal           @default(0.00) @db.Decimal(3, 2)
   reviewCount     Int               @default(0)
@@ -164,6 +178,9 @@ model FreelancerProfile {
   contracts       Contract[]
 
   @@index([userId])
+  @@index([isAvailable])
+  @@index([experienceLevel])
+  @@index([rating])
 }
 
 // ----------------------------------------------------
@@ -225,29 +242,52 @@ model FreelancerSkill {
 // ----------------------------------------------------
 
 model Project {
-  id              String         @id @default(uuid())
+  id              String           @id @default(uuid())
   clientId        String
-  client          ClientProfile  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client          ClientProfile    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   categoryId      String?
-  category        Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  category        Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   title           String
   description     String
-  budget          Decimal        @db.Decimal(12, 2)
-  budgetType      String         @default("FIXED") // FIXED or HOURLY
-  status          ProjectStatus  @default(DRAFT)
+  requirements    String?
+  budget          Decimal          @db.Decimal(12, 2)
+  minBudget       Decimal?         @db.Decimal(12, 2)
+  maxBudget       Decimal?         @db.Decimal(12, 2)
+  budgetType      String           @default("FIXED") // FIXED or HOURLY
+  experienceLevel ExperienceLevel @default(INTERMEDIATE)
+  status          ProjectStatus    @default(DRAFT)
   deadline        DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  attachments     Json?            // Array of file URLs or metadata
+  proposalCount   Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   // Relationships
   skills          ProjectSkill[]
   proposals       Proposal[]
   milestones      Milestone[]
   contracts       Contract[]
+  bookmarks       Bookmark[]
 
   @@index([clientId])
   @@index([categoryId])
   @@index([status])
+  @@index([experienceLevel])
+  @@index([budget])
+  @@index([createdAt])
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, projectId])
+  @@index([userId])
+  @@index([projectId])
 }
 
 model ProjectSkill {
@@ -264,25 +304,32 @@ model ProjectSkill {
 }
 
 model Milestone {
-  id          String          @id @default(uuid())
-  projectId   String?
-  project     Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  contractId  String?
-  contract    Contract?       @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  title       String
-  description String?
-  amount      Decimal         @db.Decimal(12, 2)
-  status      MilestoneStatus @default(PENDING)
-  dueDate     DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id                 String          @id @default(uuid())
+  projectId          String?
+  project            Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  contractId         String?
+  contract           Contract?       @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  title              String
+  description        String?
+  deliverables       String[]        @default([])
+  estimatedDuration  String?
+  budgetPercentage   Decimal?        @db.Decimal(5, 2)
+  dependencies       String[]        @default([])
+  acceptanceCriteria String[]        @default([])
+  order              Int             @default(0)
+  amount             Decimal         @db.Decimal(12, 2)
+  status             MilestoneStatus @default(PENDING)
+  dueDate            DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
 
   // Relationships
-  invoices    Invoice[]
+  invoices           Invoice[]
 
   @@index([projectId])
   @@index([contractId])
   @@index([status])
+  @@index([order])
 }
 
 model Proposal {

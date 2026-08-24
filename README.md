@@ -63,6 +63,7 @@ Freelancer_Marketplace_ProjectManager/
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **React 18** + **TypeScript**
 - **Vite** for fast HMR and optimized builds
 - **Tailwind CSS** for responsive design system
@@ -71,6 +72,7 @@ Freelancer_Marketplace_ProjectManager/
 - **Axios** with automatic 401 refresh token interceptor
 
 ### Backend
+
 - **Node.js** + **Express** + **TypeScript**
 - **PostgreSQL** + **Prisma ORM** (18 relational models, UUIDs, enums, indexes)
 - **bcryptjs** for secure password hashing
@@ -124,6 +126,7 @@ npm run prisma:seed --workspace=server
 ```
 
 #### Seeded Demo Accounts (Password: `Password123!`)
+
 - **Admin**: `admin@freelancermarket.com`
 - **Client 1**: `alex.rivers@techcorp.io`
 - **Client 2**: `sarah.chen@innovatestudio.co`
@@ -134,16 +137,16 @@ npm run prisma:seed --workspace=server
 
 ## 🔐 Authentication Endpoints
 
-| Method | Endpoint | Protection | Description |
-|---|---|---|---|
-| `GET` | `/api/health` | Public | Server health status |
-| `POST` | `/api/auth/register` | Public | Register client or freelancer account |
-| `POST` | `/api/auth/login` | Public | Log in with credentials, returns access token + sets HTTP-only refresh cookie |
-| `POST` | `/api/auth/refresh` | Public | Rotate refresh token & issue new access token |
-| `POST` | `/api/auth/forgot-password` | Public | Request password reset instructions / token |
-| `POST` | `/api/auth/reset-password` | Public | Set new password with valid token |
-| `GET` | `/api/auth/me` | `requireAuth` | Get current authenticated user and profile |
-| `POST` | `/api/auth/logout` | `requireAuth` | Invalidate refresh token & clear cookies |
+| Method | Endpoint                    | Protection    | Description                                                                   |
+| ------ | --------------------------- | ------------- | ----------------------------------------------------------------------------- |
+| `GET`  | `/api/health`               | Public        | Server health status                                                          |
+| `POST` | `/api/auth/register`        | Public        | Register client or freelancer account                                         |
+| `POST` | `/api/auth/login`           | Public        | Log in with credentials, returns access token + sets HTTP-only refresh cookie |
+| `POST` | `/api/auth/refresh`         | Public        | Rotate refresh token & issue new access token                                 |
+| `POST` | `/api/auth/forgot-password` | Public        | Request password reset instructions / token                                   |
+| `POST` | `/api/auth/reset-password`  | Public        | Set new password with valid token                                             |
+| `GET`  | `/api/auth/me`              | `requireAuth` | Get current authenticated user and profile                                    |
+| `POST` | `/api/auth/logout`          | `requireAuth` | Invalidate refresh token & clear cookies                                      |
 
 ---
 
@@ -158,16 +161,20 @@ npm run dev
 ### Option B: Run Individually
 
 **Backend Server:**
+
 ```bash
 npm run dev:server
 ```
+
 - Server runs on: `http://localhost:5000`
 - Health check API: `http://localhost:5000/api/health`
 
 **Frontend Client:**
+
 ```bash
 npm run dev:client
 ```
+
 - Client runs on: `http://localhost:5173`
 
 ---
@@ -175,11 +182,13 @@ npm run dev:client
 ## 🧪 Testing & Verification
 
 ### Run Automated Security & Auth Test Suite
+
 ```bash
 npm run test --workspace=server
 ```
 
 ### Type Checking & Build
+
 ```bash
 # Frontend
 npm run build --workspace=client
@@ -189,6 +198,7 @@ npm run build --workspace=server
 ```
 
 ### Linting & Formatting
+
 ```bash
 npm run lint
 npm run format
