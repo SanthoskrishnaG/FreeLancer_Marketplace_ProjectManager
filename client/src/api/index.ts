@@ -4,3 +4,7 @@ export * from './auth.api.js';
 export * from './profile.api.js';
 export * from './project.api.js';
 export * from './proposal.api.js';
+export * from './contract.api.js';
+export * from './milestone.api.js';
+export * from './file.api.js';
+export * from './chat.api.js';

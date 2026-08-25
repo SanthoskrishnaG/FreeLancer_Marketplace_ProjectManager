@@ -1,7 +1,16 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
-import { Briefcase, LogOut, Sparkles, Plus, Compass, Users } from 'lucide-react';
+import {
+  Briefcase,
+  LogOut,
+  Sparkles,
+  Plus,
+  Compass,
+  Users,
+  FileCheck2,
+  MessageSquare,
+} from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -67,6 +76,24 @@ export const Navbar: React.FC = () => {
               >
                 <Briefcase className="w-3.5 h-3.5 text-brand-400" /> My Proposals
               </Link>
+            )}
+
+            {isAuthenticated && (
+              <>
+                <Link
+                  to="/contracts"
+                  className="text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors"
+                >
+                  <FileCheck2 className="w-3.5 h-3.5 text-emerald-400" /> Contracts
+                </Link>
+
+                <Link
+                  to="/messages"
+                  className="text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-blue-400" /> Messages
+                </Link>
+              </>
             )}
           </nav>
 

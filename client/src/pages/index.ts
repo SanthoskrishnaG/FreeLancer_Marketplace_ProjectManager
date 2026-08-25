@@ -15,3 +15,6 @@ export * from './FreelancerProfilePage.js';
 export * from './ProfileSettingsPage.js';
 export * from './MyProposalsPage.js';
 export * from './ClientProjectProposalsPage.js';
+export * from './ContractsPage.js';
+export * from './ContractDetailsPage.js';
+export * from './MessagesPage.js';

@@ -8,3 +8,8 @@ export * from './FreelancerCard.js';
 export * from './AIMilestoneGeneratorModal.js';
 export * from './SubmitProposalModal.js';
 export * from './ProposalDetailsModal.js';
+export * from './FileUploadComponent.js';
+export * from './SubmitMilestoneModal.js';
+export * from './ReviewMilestoneModal.js';
+export * from './MilestoneHistoryDrawer.js';
+export * from './MilestoneTimeline.js';

@@ -1,37 +1,48 @@
-import { app } from './app.js';
+import http from 'http';
+import { createApp } from './app.js';
 import { envConfig } from './config/env.config.js';
+import { prisma } from './config/database.js';
 import { logger } from './utils/logger.js';
+import { SocketServer } from './socket/socket.server.js';
 
-const PORT = envConfig.port;
+const app = createApp();
+const httpServer = http.createServer(app);
 
-const server = app.listen(PORT, () => {
-  logger.info(`🚀 Server running in ${envConfig.nodeEnv} mode on http://localhost:${PORT}`);
-  logger.info(`👉 Health check available at: http://localhost:${PORT}/api/health`);
-});
+// Initialize real-time Socket.IO server
+SocketServer.initialize(httpServer);
+
+const startServer = async (): Promise<void> => {
+  try {
+    // Verify database connection
+    await prisma.$connect();
+    logger.info('Database connection established successfully');
+
+    httpServer.listen(envConfig.port, () => {
+      logger.info(
+        `Server & WebSocket listening on port ${envConfig.port} in ${envConfig.nodeEnv} mode`
+      );
+      logger.info(`Health check available at http://localhost:${envConfig.port}/api/health`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 // Graceful shutdown handling
-const gracefulShutdown = (signal: string) => {
+const gracefulShutdown = async (signal: string) => {
   logger.info(`Received ${signal}. Shutting down gracefully...`);
-  server.close(() => {
-    logger.info('HTTP server closed.');
+  try {
+    await prisma.$disconnect();
+    logger.info('Database disconnected.');
     process.exit(0);
-  });
-
-  // Force close after 10s
-  setTimeout(() => {
-    logger.error('Could not close connections in time, forcefully shutting down');
+  } catch (err) {
+    logger.error('Error during shutdown:', err);
     process.exit(1);
-  }, 10000);
+  }
 };
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-process.on('unhandledRejection', (reason: Error) => {
-  logger.error('Unhandled Promise Rejection:', reason);
-});
-
-process.on('uncaughtException', (error: Error) => {
-  logger.error('Uncaught Exception:', error);
-  process.exit(1);
-});

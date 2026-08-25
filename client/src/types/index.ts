@@ -5,6 +5,17 @@ export type ProjectStatus =
 
 export type ProposalStatus = 'PENDING' | 'SHORTLISTED' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN';
 
+export type MilestoneStatus =
+  | 'PENDING'
+  | 'IN_PROGRESS'
+  | 'SUBMITTED'
+  | 'UNDER_REVIEW'
+  | 'REVISION_REQUESTED'
+  | 'APPROVED'
+  | 'COMPLETED';
+
+export type ContractStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'DISPUTED';
+
 export interface Category {
   id: string;
   name: string;
@@ -89,9 +100,50 @@ export interface User {
   freelancerProfile?: FreelancerProfile | null;
 }
 
+export interface FileItem {
+  id: string;
+  originalName: string;
+  storageKey: string;
+  url: string;
+  mimeType: string;
+  size: number;
+  createdAt: string;
+}
+
+export interface MilestoneSubmission {
+  id: string;
+  milestoneId: string;
+  freelancerProfileId: string;
+  description: string;
+  notes?: string | null;
+  links: string[];
+  files?: FileItem[];
+  submittedAt: string;
+  freelancerProfile?: {
+    user: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      avatarUrl?: string | null;
+    };
+  };
+}
+
+export interface MilestoneRevision {
+  id: string;
+  milestoneId: string;
+  clientId: string;
+  submissionId?: string | null;
+  feedback: string;
+  requestedChanges: string[];
+  dueDate?: string | null;
+  createdAt: string;
+}
+
 export interface Milestone {
   id: string;
   projectId?: string | null;
+  contractId?: string | null;
   title: string;
   description?: string | null;
   deliverables: string[];
@@ -101,8 +153,10 @@ export interface Milestone {
   acceptanceCriteria: string[];
   order: number;
   amount: string | number;
-  status: 'PENDING' | 'IN_PROGRESS' | 'SUBMITTED' | 'APPROVED' | 'RELEASED' | 'CANCELLED';
+  status: MilestoneStatus;
   dueDate?: string | null;
+  submissions?: MilestoneSubmission[];
+  revisions?: MilestoneRevision[];
 }
 
 export interface ProposalMilestonePricing {
@@ -144,6 +198,98 @@ export interface Proposal {
     };
   };
   freelancerProfile?: FreelancerProfile;
+}
+
+export interface Contract {
+  id: string;
+  projectId: string;
+  proposalId?: string | null;
+  clientId: string;
+  freelancerProfileId: string;
+  status: ContractStatus;
+  totalAmount: string | number;
+  startDate: string;
+  endDate?: string | null;
+  terms?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  totalMilestones?: number;
+  completedMilestones?: number;
+  progressPercentage?: number;
+  project?: {
+    id: string;
+    title: string;
+    status: ProjectStatus;
+    category?: Category | null;
+  };
+  client?: {
+    id: string;
+    companyName?: string | null;
+    user: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      avatarUrl?: string | null;
+      location?: string | null;
+    };
+  };
+  freelancerProfile?: {
+    id: string;
+    title?: string | null;
+    hourlyRate?: string | number | null;
+    user: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      avatarUrl?: string | null;
+      location?: string | null;
+    };
+    skills?: FreelancerSkill[];
+  };
+  milestones?: Milestone[];
+  conversation?: {
+    id: string;
+  } | null;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  isRead: boolean;
+  createdAt: string;
+  sender?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+  };
+  files?: FileItem[];
+}
+
+export interface Conversation {
+  id: string;
+  contractId?: string | null;
+  projectId?: string | null;
+  updatedAt: string;
+  isUnread?: boolean;
+  partner?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    role: UserRole;
+  };
+  lastMessage?: Message | null;
+  contract?: {
+    id: string;
+    status: ContractStatus;
+    project: {
+      id: string;
+      title: string;
+    };
+  } | null;
 }
 
 export interface ProjectSkill {

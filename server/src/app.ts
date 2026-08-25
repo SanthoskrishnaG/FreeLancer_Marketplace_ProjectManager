@@ -1,4 +1,5 @@
 import express, { Express } from 'express';
+import path from 'path';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { envConfig } from './config/env.config.js';
@@ -21,6 +22,11 @@ export function createApp(): Express {
 
   // Logging Middleware
   app.use(requestLogger);
+
+  // Static files
+  app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
+
+  // Root health endpoint (for fast uptime checks)
 
   // Mount API routes at /api
   app.use('/api', apiRoutes);

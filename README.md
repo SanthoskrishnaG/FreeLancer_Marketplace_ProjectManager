@@ -148,9 +148,36 @@ npm run prisma:seed --workspace=server
 | `GET`  | `/api/auth/me`              | `requireAuth` | Get current authenticated user and profile                                    |
 | `POST` | `/api/auth/logout`          | `requireAuth` | Invalidate refresh token & clear cookies                                      |
 
+### Storage & File Management Configuration
+
+The backend includes a storage abstraction supporting local disk storage and cloud storage providers (S3/Cloudinary):
+
+```env
+# File Storage Configuration
+UPLOAD_DIR="./uploads"              # Local storage directory
+MAX_FILE_SIZE_MB=15                 # Maximum allowed upload size (MB)
+ALLOWED_MIME_TYPES="image/*,application/pdf,application/zip,application/msword,text/*"
+
+# Cloud Storage Integration (Optional)
+# CLOUDINARY_CLOUD_NAME=your_cloud_name
+# CLOUDINARY_API_KEY=your_api_key
+# CLOUDINARY_API_SECRET=your_api_secret
+# AWS_S3_BUCKET=your_bucket
+# AWS_ACCESS_KEY_ID=your_key
+# AWS_SECRET_ACCESS_KEY=your_secret
+```
+
+### Real-Time Socket.IO Messaging
+
+Socket.IO is configured on the primary HTTP server port (`5000` by default):
+
+- **Authentication**: JWT access token in WebSocket connection handshake.
+- **Presence & State**: Real-time online/offline presence broadcast and typing indicators.
+- **Channels**: Auto-joined rooms per user (`user:${userId}`) and per conversation (`conversation:${conversationId}`).
+
 ---
 
-## 🏃 Running the Application
+## 💻 Running The Application
 
 ### Option A: Run Both Client & Server Concurrently
 

@@ -83,6 +83,9 @@ export class ProposalRepository {
                 skill: true,
               },
             },
+            milestones: {
+              orderBy: { order: 'asc' },
+            },
             client: {
               include: {
                 user: {
@@ -270,16 +273,42 @@ export class ProposalRepository {
 
   public static async acceptProposal(proposalId: string) {
     return prisma.$transaction(async (tx) => {
-      // 1. Fetch proposal and related project
+      // 1. Fetch proposal and related project with client & freelancer
       const proposal = await tx.proposal.findUnique({
         where: { id: proposalId },
         include: {
-          project: true,
+          project: {
+            include: {
+              milestones: {
+                orderBy: { order: 'asc' },
+              },
+              client: true,
+            },
+          },
+          freelancerProfile: {
+            include: {
+              user: true,
+            },
+          },
         },
       });
 
       if (!proposal) {
         throw new Error('Proposal not found');
+      }
+
+      // Check for existing contract
+      const existingContract = await tx.contract.findUnique({
+        where: {
+          projectId_freelancerProfileId: {
+            projectId: proposal.projectId,
+            freelancerProfileId: proposal.freelancerProfileId,
+          },
+        },
+      });
+
+      if (existingContract) {
+        throw new Error('A contract already exists for this project and freelancer.');
       }
 
       // 2. Mark this proposal as ACCEPTED
@@ -308,10 +337,74 @@ export class ProposalRepository {
       const contract = await tx.contract.create({
         data: {
           projectId: proposal.projectId,
+          proposalId: proposal.id,
           clientId: proposal.project.clientId,
           freelancerProfileId: proposal.freelancerProfileId,
           totalAmount: proposal.bidAmount,
           status: 'ACTIVE',
+          terms: `Standard freelance contract agreement between client and freelancer for "${proposal.project.title}". Deliverables and escrow released according to milestones schedule.`,
+        },
+      });
+
+      // 6. Attach or create Milestones for Contract
+      const proposalMilestones = (proposal.milestonePricing as any[]) || [];
+
+      if (proposalMilestones.length > 0) {
+        // Create milestones from proposal pricing
+        await tx.milestone.createMany({
+          data: proposalMilestones.map((m, idx) => ({
+            contractId: contract.id,
+            projectId: proposal.projectId,
+            title: m.title || `Phase ${idx + 1}`,
+            amount: new Prisma.Decimal(
+              m.amount || Number(proposal.bidAmount) / proposalMilestones.length
+            ),
+            estimatedDuration: m.duration || '1 week',
+            status: idx === 0 ? 'IN_PROGRESS' : 'PENDING',
+            order: idx + 1,
+          })),
+        });
+      } else if (proposal.project.milestones.length > 0) {
+        // Associate existing project milestones with the new contract
+        await tx.milestone.updateMany({
+          where: { projectId: proposal.projectId },
+          data: { contractId: contract.id },
+        });
+      } else {
+        // Fallback default contract milestone
+        await tx.milestone.create({
+          data: {
+            contractId: contract.id,
+            projectId: proposal.projectId,
+            title: 'Full Project Delivery',
+            amount: proposal.bidAmount,
+            estimatedDuration: proposal.estimatedDuration || '2 weeks',
+            status: 'IN_PROGRESS',
+            order: 1,
+          },
+        });
+      }
+
+      // 7. Initialize 1-on-1 Conversation
+      const conversation = await tx.conversation.create({
+        data: {
+          contractId: contract.id,
+          projectId: proposal.projectId,
+          participants: {
+            create: [
+              { userId: proposal.project.client.userId },
+              { userId: proposal.freelancerProfile.userId },
+            ],
+          },
+        },
+      });
+
+      // Welcome system message
+      await tx.message.create({
+        data: {
+          conversationId: conversation.id,
+          senderId: proposal.project.client.userId,
+          content: `🎉 Proposal accepted! Welcome to the project "${proposal.project.title}". The contract is now active.`,
         },
       });
 
