@@ -113,6 +113,30 @@ export const App: React.FC = () => {
                     }
                   />
                   <Route
+                    path="/my-contracts"
+                    element={
+                      <ProtectedRoute>
+                        <ContractsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/client/contracts"
+                    element={
+                      <ProtectedRoute allowedRoles={['CLIENT', 'ADMIN']}>
+                        <ContractsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/freelancer/contracts"
+                    element={
+                      <ProtectedRoute allowedRoles={['FREELANCER', 'ADMIN']}>
+                        <ContractsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/contracts/:id"
                     element={
                       <ProtectedRoute>
