@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { submitReviewApi } from '../api/review.api.js';
-import { Star, X, Loader2, MessageSquareCheck } from 'lucide-react';
+import { Star, X, Loader2, CheckCircle2 } from 'lucide-react';
 
 interface ReviewModalProps {
   contractId: string;
@@ -159,7 +159,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 </>
               ) : (
                 <>
-                  <MessageSquareCheck className="w-4 h-4" /> Submit Review
+                  <CheckCircle2 className="w-4 h-4" /> Submit Review
                 </>
               )}
             </button>

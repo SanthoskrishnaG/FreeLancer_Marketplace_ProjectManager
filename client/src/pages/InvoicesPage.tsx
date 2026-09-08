@@ -13,12 +13,8 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  XCircle,
   Eye,
   Loader2,
-  TrendingUp,
-  DollarSign,
-  ArrowRight,
 } from 'lucide-react';
 
 export const InvoicesPage: React.FC = () => {

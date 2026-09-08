@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { getContractByIdApi } from '../api/contract.api.js';
 import { generateInvoiceApi, getInvoicesApi } from '../api/invoice.api.js';
 import { getContractReviewsApi } from '../api/review.api.js';
@@ -19,10 +19,8 @@ import {
   ExternalLink,
   Layers,
   FileText,
-  CreditCard,
   Scale,
   Star,
-  CheckCircle2,
   AlertTriangle,
 } from 'lucide-react';
 
@@ -30,12 +28,10 @@ export const ContractDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isDisputeModalOpen, setIsDisputeModalOpen] = useState(false);
   const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
-  const [invoiceSuccessMsg, setInvoiceSuccessMsg] = useState<string | null>(null);
 
   const {
     data: contract,
@@ -89,7 +85,6 @@ export const ContractDetailsPage: React.FC = () => {
   const clientUser = contract.client?.user;
   const freelancerUser = contract.freelancerProfile?.user;
   const isClient = user?.role === 'CLIENT';
-  const isFreelancer = user?.role === 'FREELANCER';
 
   const recipientName = isClient
     ? `${freelancerUser?.firstName} ${freelancerUser?.lastName}`
@@ -100,12 +95,10 @@ export const ContractDetailsPage: React.FC = () => {
 
   const handleGenerateInvoice = async () => {
     setIsGeneratingInvoice(true);
-    setInvoiceSuccessMsg(null);
     try {
       const invoice = await generateInvoiceApi({
         contractId: contract.id,
       });
-      setInvoiceSuccessMsg(`Invoice #${invoice.invoiceNumber} created!`);
       refetchInvoices();
       navigate(`/invoices/${invoice.id}`);
     } catch (err: any) {

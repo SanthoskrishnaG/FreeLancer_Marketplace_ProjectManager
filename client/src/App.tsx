@@ -24,6 +24,11 @@ import {
   ContractsPage,
   ContractDetailsPage,
   MessagesPage,
+  InvoicesPage,
+  InvoiceDetailsPage,
+  PaymentHistoryPage,
+  DisputesPage,
+  DisputeDetailsPage,
   NotFoundPage,
 } from './pages/index.js';
 
@@ -151,6 +156,50 @@ export const App: React.FC = () => {
                     element={
                       <ProtectedRoute>
                         <MessagesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Protected Invoicing & Payment Routes */}
+                  <Route
+                    path="/invoices"
+                    element={
+                      <ProtectedRoute>
+                        <InvoicesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/invoices/:id"
+                    element={
+                      <ProtectedRoute>
+                        <InvoiceDetailsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/payments"
+                    element={
+                      <ProtectedRoute>
+                        <PaymentHistoryPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Protected Dispute Management Routes */}
+                  <Route
+                    path="/disputes"
+                    element={
+                      <ProtectedRoute>
+                        <DisputesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/disputes/:id"
+                    element={
+                      <ProtectedRoute>
+                        <DisputeDetailsPage />
                       </ProtectedRoute>
                     }
                   />

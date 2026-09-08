@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getFreelancerByIdApi } from '../api/profile.api.js';
+import { getFreelancerReviewsApi } from '../api/review.api.js';
 import {
   Star,
   MapPin,
@@ -25,6 +26,12 @@ export const FreelancerProfilePage: React.FC = () => {
   } = useQuery({
     queryKey: ['freelancer', id],
     queryFn: () => getFreelancerByIdApi(id!),
+    enabled: !!id,
+  });
+
+  const { data: reviews } = useQuery({
+    queryKey: ['freelancer-reviews', id],
+    queryFn: () => getFreelancerReviewsApi(id!),
     enabled: !!id,
   });
 
@@ -182,6 +189,64 @@ export const FreelancerProfilePage: React.FC = () => {
             ) : (
               <div className="p-8 text-center bg-slate-950/60 rounded-2xl border border-dashed border-slate-800 text-xs text-slate-400">
                 Portfolio items are being curated by this freelancer.
+              </div>
+            )}
+          </div>
+
+          {/* Client Reviews & Verified Feedback */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Star className="w-5 h-5 text-amber-400 fill-amber-400" /> Client Reviews & Verified Feedback
+              </h2>
+              <span className="text-xs text-slate-400 font-semibold">
+                ⭐ {Number(freelancer.rating || 5.0).toFixed(1)} / 5.0 ({freelancer.reviewCount || reviews?.length || 0} reviews)
+              </span>
+            </div>
+
+            {reviews && reviews.length > 0 ? (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <div
+                    key={review.id}
+                    className="p-5 bg-slate-950 rounded-2xl border border-slate-800 space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold text-xs">
+                          {review.author?.firstName?.[0] || 'C'}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-white">
+                            {review.author?.firstName} {review.author?.lastName}
+                          </p>
+                          {review.contract?.project?.title && (
+                            <p className="text-[11px] text-slate-400 truncate max-w-sm">
+                              Project: {review.contract.project.title}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span className="text-xs font-bold text-amber-400">{review.rating}.0</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-300 leading-relaxed italic">
+                      "{review.comment}"
+                    </p>
+
+                    <p className="text-[10px] text-slate-500">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center bg-slate-950/60 rounded-2xl border border-dashed border-slate-800 text-xs text-slate-400">
+                No client reviews yet. Reviews are verified and published upon milestone contract completions.
               </div>
             )}
           </div>

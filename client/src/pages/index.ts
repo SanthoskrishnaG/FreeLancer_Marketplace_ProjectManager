@@ -18,3 +18,8 @@ export * from './ClientProjectProposalsPage.js';
 export * from './ContractsPage.js';
 export * from './ContractDetailsPage.js';
 export * from './MessagesPage.js';
+export * from './InvoicesPage.js';
+export * from './InvoiceDetailsPage.js';
+export * from './PaymentHistoryPage.js';
+export * from './DisputesPage.js';
+export * from './DisputeDetailsPage.js';

@@ -1,5 +1,8 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext.js';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { getFinancialMetricsApi } from '../api/invoice.api.js';
 import {
   User,
   Building2,
@@ -7,12 +10,20 @@ import {
   ShieldCheck,
   Calendar,
   LogOut,
-  Sparkles,
-  Layers,
+  Scale,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
 } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
+
+  const { data: metrics } = useQuery({
+    queryKey: ['financial-metrics'],
+    queryFn: () => getFinancialMetricsApi(),
+    enabled: !!user,
+  });
 
   if (!user) return null;
 
@@ -66,10 +77,67 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Financial Overview Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl backdrop-blur-xl space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-400">
+              {user.role === 'CLIENT' ? 'Total Settled Outflow' : 'Total Earnings Cleared'}
+            </p>
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+          </div>
+          <p className="text-2xl font-extrabold text-emerald-400">
+            ${Number(metrics?.totalPaid ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </p>
+          <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px]">
+            <span className="text-slate-500">{metrics?.paidCount ?? 0} invoices settled</span>
+            <Link to="/payments" className="text-brand-400 hover:underline inline-flex items-center gap-1 font-medium">
+              Transactions <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+
+        <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl backdrop-blur-xl space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-400">Pending Invoicing Volume</p>
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <p className="text-2xl font-extrabold text-amber-400">
+            ${Number(metrics?.totalPending ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </p>
+          <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px]">
+            <span className="text-slate-500">{metrics?.pendingCount ?? 0} bills awaiting payment</span>
+            <Link to="/invoices" className="text-brand-400 hover:underline inline-flex items-center gap-1 font-medium">
+              Manage Invoices <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+
+        <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl backdrop-blur-xl space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-400">Contract Arbitration & Claims</p>
+            <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center">
+              <Scale className="w-4 h-4" />
+            </div>
+          </div>
+          <p className="text-2xl font-extrabold text-white">Dispute Center</p>
+          <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px]">
+            <span className="text-slate-500">Escrow mediation active</span>
+            <Link to="/disputes" className="text-rose-400 hover:underline inline-flex items-center gap-1 font-medium">
+              View Cases <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Grid: Profile Details & Active Role Data */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Account Details */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4 backdrop-blur-xl">
           <h3 className="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-2">
             <User className="w-4 h-4 text-brand-400" /> Account Information
           </h3>
@@ -92,14 +160,14 @@ export const DashboardPage: React.FC = () => {
               </span>
             </div>
             <div className="flex justify-between py-2">
-              <span className="text-slate-400">Security Token</span>
-              <span className="text-emerald-400 font-medium">Active (HTTP-only)</span>
+              <span className="text-slate-400">Security Engine</span>
+              <span className="text-emerald-400 font-medium">Zero Card Storage (Active)</span>
             </div>
           </div>
         </div>
 
         {/* Middle & Right Column: Role Profile Details */}
-        <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4 backdrop-blur-xl">
           <h3 className="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-2">
             {user.role === 'CLIENT' ? (
               <>
@@ -114,7 +182,7 @@ export const DashboardPage: React.FC = () => {
 
           {user.role === 'CLIENT' && (
             <div className="space-y-4">
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-2">
                 <p className="text-xs text-slate-400">Company Name</p>
                 <p className="text-sm font-semibold text-white">
                   {user.clientProfile?.companyName || 'Not specified (Independent Client)'}
@@ -131,7 +199,7 @@ export const DashboardPage: React.FC = () => {
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
                   <p className="text-[11px] text-slate-400">Client Rating</p>
                   <p className="text-base font-bold text-amber-400 mt-1">
-                    ⭐ {user.clientProfile?.rating ?? '5.0'} / 5
+                    ⭐ {Number(user.clientProfile?.rating || 5.0).toFixed(1)} / 5
                   </p>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
@@ -146,7 +214,7 @@ export const DashboardPage: React.FC = () => {
 
           {user.role === 'FREELANCER' && (
             <div className="space-y-4">
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-2">
                 <p className="text-xs text-slate-400">Professional Title</p>
                 <p className="text-sm font-semibold text-white">
                   {user.freelancerProfile?.title || 'Full-Stack Software Engineer'}
@@ -168,7 +236,7 @@ export const DashboardPage: React.FC = () => {
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
                   <p className="text-[11px] text-slate-400">Freelancer Rating</p>
                   <p className="text-base font-bold text-amber-400 mt-1">
-                    ⭐ {user.freelancerProfile?.rating ?? '5.0'} / 5
+                    ⭐ {Number(user.freelancerProfile?.rating || 5.0).toFixed(1)} / 5
                   </p>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
@@ -180,24 +248,6 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Next Milestone Information */}
-      <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/20">
-            <Sparkles className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-white">Phase 2 Authentication Initialized</h4>
-            <p className="text-xs text-slate-400">
-              JWT tokens, refresh rotation, HTTP-only cookies, and role access are fully active.
-            </p>
-          </div>
-        </div>
-        <div className="hidden sm:flex items-center gap-2 text-xs text-brand-400 font-medium">
-          <Layers className="w-4 h-4" /> Ready for Phase 3 Project Management
         </div>
       </div>
     </div>

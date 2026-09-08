@@ -10,8 +10,6 @@ import {
   CreditCard,
   Building2,
   User as UserIcon,
-  ShieldCheck,
-  Calendar,
   FileCheck2,
   CheckCircle2,
   Loader2,

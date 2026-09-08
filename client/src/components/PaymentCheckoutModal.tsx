@@ -3,13 +3,11 @@ import { Invoice } from '../types/index.js';
 import { processPaymentApi } from '../api/payment.api.js';
 import {
   CreditCard,
-  ShieldCheck,
   CheckCircle2,
   X,
   Loader2,
   Lock,
   Building2,
-  ExternalLink,
 } from 'lucide-react';
 
 interface PaymentCheckoutModalProps {

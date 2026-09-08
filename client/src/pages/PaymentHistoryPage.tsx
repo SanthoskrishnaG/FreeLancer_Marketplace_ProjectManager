@@ -5,13 +5,11 @@ import { getPaymentHistoryApi } from '../api/payment.api.js';
 import {
   CreditCard,
   CheckCircle2,
-  AlertTriangle,
-  FileText,
-  Calendar,
   Loader2,
   ArrowLeft,
   ShieldCheck,
-  Building2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 export const PaymentHistoryPage: React.FC = () => {
@@ -128,6 +126,30 @@ export const PaymentHistoryPage: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {pagination && pagination.totalPages > 1 && (
+          <div className="p-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span>
+              Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                disabled={page <= 1}
+                className="p-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
+                disabled={page >= pagination.totalPages}
+                className="p-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>

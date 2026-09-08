@@ -11,14 +11,11 @@ import {
 } from '../api/dispute.api.js';
 import { useAuth } from '../context/AuthContext.js';
 import {
-  AlertTriangle,
   ArrowLeft,
   MessageSquare,
   Send,
-  ShieldAlert,
   CheckCircle2,
   XCircle,
-  Clock,
   Building2,
   User as UserIcon,
   ExternalLink,

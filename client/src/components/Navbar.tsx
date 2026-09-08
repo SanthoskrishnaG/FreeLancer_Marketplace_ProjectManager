@@ -10,6 +10,8 @@ import {
   Users,
   FileCheck2,
   MessageSquare,
+  FileText,
+  Scale,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -85,6 +87,20 @@ export const Navbar: React.FC = () => {
                   className="text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors"
                 >
                   <FileCheck2 className="w-3.5 h-3.5 text-emerald-400" /> Contracts
+                </Link>
+
+                <Link
+                  to="/invoices"
+                  className="text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors"
+                >
+                  <FileText className="w-3.5 h-3.5 text-amber-400" /> Invoices
+                </Link>
+
+                <Link
+                  to="/disputes"
+                  className="text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors"
+                >
+                  <Scale className="w-3.5 h-3.5 text-rose-400" /> Disputes
                 </Link>
 
                 <Link

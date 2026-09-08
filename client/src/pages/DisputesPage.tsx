@@ -5,15 +5,11 @@ import { getDisputesApi } from '../api/dispute.api.js';
 import { DisputeStatus } from '../types/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import {
-  ShieldAlert,
   AlertTriangle,
-  Clock,
   CheckCircle2,
-  XCircle,
   MessageSquare,
   ArrowRight,
   Loader2,
-  Building2,
   Scale,
 } from 'lucide-react';
 
