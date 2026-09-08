@@ -361,3 +361,243 @@ export interface ApiResponse<T = unknown> {
   message?: string;
   data?: T;
 }
+
+// ----------------------------------------------------
+// Invoicing & Payment Interfaces
+// ----------------------------------------------------
+
+export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+
+export interface InvoiceItem {
+  id: string;
+  invoiceId: string;
+  milestoneId?: string | null;
+  description: string;
+  amount: string | number;
+  order: number;
+  createdAt: string;
+}
+
+export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+
+export interface Payment {
+  id: string;
+  invoiceId: string;
+  contractId: string;
+  amount: string | number;
+  currency: string;
+  provider: string;
+  transactionId: string;
+  status: PaymentStatus;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+  updatedAt: string;
+  invoice?: {
+    id: string;
+    invoiceNumber: string;
+    status: InvoiceStatus;
+    total: string | number;
+  };
+  contract?: {
+    id: string;
+    project?: {
+      title: string;
+    };
+    client?: {
+      user: {
+        firstName: string;
+        lastName: string;
+      };
+    };
+    freelancerProfile?: {
+      user: {
+        firstName: string;
+        lastName: string;
+      };
+    };
+  };
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  clientId: string;
+  freelancerProfileId: string;
+  projectId: string;
+  contractId: string;
+  milestoneId?: string | null;
+  issueDate: string;
+  dueDate: string;
+  subtotal: string | number;
+  tax: string | number;
+  total: string | number;
+  status: InvoiceStatus;
+  paidAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items?: InvoiceItem[];
+  payments?: Payment[];
+  client?: {
+    id: string;
+    companyName?: string | null;
+    user?: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      location?: string | null;
+    };
+  };
+  freelancerProfile?: {
+    id: string;
+    title?: string | null;
+    user?: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      location?: string | null;
+    };
+  };
+  project?: {
+    id: string;
+    title: string;
+  };
+  contract?: {
+    id: string;
+    status: ContractStatus;
+    totalAmount: string | number;
+  };
+}
+
+export interface FinancialMetrics {
+  totalInvoices: number;
+  paidCount: number;
+  pendingCount: number;
+  totalPaid: number;
+  totalPending: number;
+  totalOverdue: number;
+}
+
+// ----------------------------------------------------
+// Reviews & Dispute Interfaces
+// ----------------------------------------------------
+
+export interface Review {
+  id: string;
+  contractId: string;
+  authorId: string;
+  recipientId: string;
+  rating: number;
+  comment?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  author?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    role: UserRole;
+  };
+  recipient?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    role: UserRole;
+  };
+  contract?: {
+    id: string;
+    project?: {
+      id: string;
+      title: string;
+    };
+  };
+}
+
+export type DisputeStatus = 'OPEN' | 'UNDER_REVIEW' | 'RESOLVED' | 'REJECTED';
+
+export interface DisputeMessage {
+  id: string;
+  disputeId: string;
+  senderId: string;
+  message: string;
+  attachments?: string[] | null;
+  createdAt: string;
+  sender?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    role: UserRole;
+  };
+}
+
+export interface Dispute {
+  id: string;
+  contractId: string;
+  initiatorId: string;
+  reason: string;
+  description: string;
+  evidence?: string[] | null;
+  status: DisputeStatus;
+  adminDecision?: string | null;
+  resolutionNotes?: string | null;
+  resolvedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  initiator?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    role: UserRole;
+  };
+  contract?: {
+    id: string;
+    project?: {
+      id: string;
+      title: string;
+    };
+    client?: {
+      userId?: string;
+      companyName?: string | null;
+      user?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+      };
+    };
+    freelancerProfile?: {
+      userId?: string;
+      user?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+      };
+    };
+  };
+  messages?: DisputeMessage[];
+  _count?: {
+    messages: number;
+  };
+}
+
+export interface AuditLog {
+  id: string;
+  userId?: string | null;
+  action: string;
+  entity: string;
+  entityId?: string | null;
+  details?: string | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  createdAt: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    role: UserRole;
+  } | null;
+}
+

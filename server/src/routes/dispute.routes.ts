@@ -1,13 +1,14 @@
 import { Router } from 'express';
 import { DisputeController } from '../controllers/dispute.controller.js';
-import { requireAuth, requireRole, validateRequest } from '../middleware/index.js';
+import { requireAuth, requireRole } from '../middleware/index.js';
 import {
+  validateRequest,
   createDisputeSchema,
   addDisputeMessageSchema,
   resolveDisputeSchema,
   rejectDisputeSchema,
   updateDisputeStatusSchema,
-} from '../validators/dispute.validator.js';
+} from '../validators/index.js';
 import { UserRole } from '@prisma/client';
 
 const router = Router();
@@ -38,7 +39,7 @@ router.post(
 router.patch(
   '/:id/status',
   requireAuth,
-  requireRole([UserRole.ADMIN]),
+  requireRole(UserRole.ADMIN),
   validateRequest(updateDisputeStatusSchema),
   DisputeController.updateStatus
 );
@@ -47,7 +48,7 @@ router.patch(
 router.post(
   '/:id/resolve',
   requireAuth,
-  requireRole([UserRole.ADMIN]),
+  requireRole(UserRole.ADMIN),
   validateRequest(resolveDisputeSchema),
   DisputeController.resolveDispute
 );
@@ -56,7 +57,7 @@ router.post(
 router.post(
   '/:id/reject',
   requireAuth,
-  requireRole([UserRole.ADMIN]),
+  requireRole(UserRole.ADMIN),
   validateRequest(rejectDisputeSchema),
   DisputeController.rejectDispute
 );
@@ -65,7 +66,7 @@ router.post(
 router.get(
   '/:id/audit-logs',
   requireAuth,
-  requireRole([UserRole.ADMIN]),
+  requireRole(UserRole.ADMIN),
   DisputeController.getAuditLogs
 );
 

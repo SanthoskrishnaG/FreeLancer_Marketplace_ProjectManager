@@ -1,8 +1,7 @@
 import { Router } from 'express';
 import { InvoiceController } from '../controllers/invoice.controller.js';
 import { requireAuth } from '../middleware/index.js';
-import { validateRequest } from '../middleware/index.js';
-import { createInvoiceSchema } from '../validators/invoice.validator.js';
+import { validateRequest, createInvoiceSchema } from '../validators/index.js';
 
 const router = Router();
 

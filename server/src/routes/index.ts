@@ -8,6 +8,10 @@ import contractRoutes from './contract.routes.js';
 import milestoneRoutes from './milestone.routes.js';
 import fileRoutes from './file.routes.js';
 import chatRoutes from './chat.routes.js';
+import invoiceRoutes from './invoice.routes.js';
+import paymentRoutes from './payment.routes.js';
+import reviewRoutes from './review.routes.js';
+import disputeRoutes from './dispute.routes.js';
 
 const router = Router();
 
@@ -23,5 +27,9 @@ router.use('/contracts', contractRoutes);
 router.use('/milestones', milestoneRoutes);
 router.use('/files', fileRoutes);
 router.use('/chat', chatRoutes);
+router.use('/invoices', invoiceRoutes);
+router.use('/payments', paymentRoutes);
+router.use('/reviews', reviewRoutes);
+router.use('/disputes', disputeRoutes);
 
 export default router;

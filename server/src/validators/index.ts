@@ -35,3 +35,7 @@ export * from './project.validator.js';
 export * from './proposal.validator.js';
 export * from './contract.validator.js';
 export * from './milestone.validator.js';
+export * from './invoice.validator.js';
+export * from './payment.validator.js';
+export * from './review.validator.js';
+export * from './dispute.validator.js';

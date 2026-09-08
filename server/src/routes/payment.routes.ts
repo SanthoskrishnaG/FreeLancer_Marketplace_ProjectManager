@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { PaymentController } from '../controllers/payment.controller.js';
-import { requireAuth, validateRequest } from '../middleware/index.js';
-import { processPaymentSchema, paymentQuerySchema } from '../validators/payment.validator.js';
+import { requireAuth } from '../middleware/index.js';
+import {
+  validateRequest,
+  processPaymentSchema,
+  paymentQuerySchema,
+} from '../validators/index.js';
 
 const router = Router();
 
