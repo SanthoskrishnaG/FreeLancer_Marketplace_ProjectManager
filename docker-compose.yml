@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: marketplace_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: freelancer_marketplace
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: marketplace_backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 5000
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/freelancer_marketplace?schema=public
+      JWT_SECRET: supersecret_jwt_key_for_development_purposes_only
+      JWT_REFRESH_SECRET: supersecret_refresh_jwt_key_for_development_purposes_only
+      CLIENT_URL: http://localhost:5173
+      NODE_ENV: production
+    ports:
+      - '5000:5000'
+
+  django-admin:
+    build:
+      context: ./django-admin
+      dockerfile: Dockerfile
+    container_name: marketplace_django_admin
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/freelancer_marketplace?schema=public
+      DJANGO_SECRET_KEY: django-supersecret-production-admin-key-2026
+      DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: "*"
+    ports:
+      - '8000:8000'
+
+  frontend:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    container_name: marketplace_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - '5173:80'
+
+volumes:
+  postgres_data:
