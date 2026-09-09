@@ -39,8 +39,6 @@ import {
   Legend,
 } from 'recharts';
 
-const PIE_COLORS = ['#818cf8', '#38bdf8', '#10b981', '#f43f5e'];
-
 export const FreelancerDashboardPage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -104,10 +102,10 @@ export const FreelancerDashboardPage = () => {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Freelancer Suite
           </h1>
-          <p className="text-xs sm:text-sm text-gray-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Track earnings, submitted proposals, milestone deadlines, and active client contracts.
           </p>
         </div>
@@ -119,14 +117,14 @@ export const FreelancerDashboardPage = () => {
               fetchDashboardData();
             }}
             disabled={refreshing}
-            className="p-2.5 rounded-xl bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 transition-colors"
+            className="p-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 transition-colors shadow-xs"
             title="Refresh Data"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
           <Link
             to="/projects"
-            className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-lg shadow-purple-600/30 transition-all flex items-center gap-2"
+            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-2"
           >
             <Briefcase className="w-4 h-4" />
             <span>Find New Projects</span>
@@ -134,7 +132,7 @@ export const FreelancerDashboardPage = () => {
         </div>
       </div>
 
-      {/* 9 Statistical Metrics Cards */}
+      {/* 5 Statistical Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <MetricCard
           title="Total Earnings"
@@ -173,7 +171,7 @@ export const FreelancerDashboardPage = () => {
         />
       </div>
 
-      {/* 4 Professional Recharts Visualizations */}
+      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Monthly Earnings */}
         <ChartCard
@@ -183,18 +181,20 @@ export const FreelancerDashboardPage = () => {
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={charts.monthlyEarnings || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
-                <XAxis dataKey="month" stroke="#6b7280" fontSize={11} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={11} tickLine={false} tickFormatter={(v) => `$${v}`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                <XAxis dataKey="month" stroke="#94A3B8" fontSize={11} tickLine={false} />
+                <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} tickFormatter={(v) => `$${v}`} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#111827',
-                    border: '1px solid #374151',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '12px',
                     fontSize: '12px',
+                    color: '#0F172A',
+                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.08)',
                   }}
                 />
-                <Bar dataKey="earnings" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="earnings" fill="#7C3AED" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -210,22 +210,24 @@ export const FreelancerDashboardPage = () => {
               <AreaChart data={charts.workingHoursTrends || []}>
                 <defs>
                   <linearGradient id="hoursGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#38BDF8" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#38BDF8" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
-                <XAxis dataKey="week" stroke="#6b7280" fontSize={11} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={11} tickLine={false} unit="h" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                <XAxis dataKey="week" stroke="#94A3B8" fontSize={11} tickLine={false} />
+                <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} unit="h" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#111827',
-                    border: '1px solid #374151',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '12px',
                     fontSize: '12px',
+                    color: '#0F172A',
+                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.08)',
                   }}
                 />
-                <Area type="monotone" dataKey="hours" stroke="#38bdf8" strokeWidth={2.5} fill="url(#hoursGrad)" />
+                <Area type="monotone" dataKey="hours" stroke="#0EA5E9" strokeWidth={2.5} fill="url(#hoursGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -233,19 +235,19 @@ export const FreelancerDashboardPage = () => {
       </div>
 
       {/* Current Milestones In Progress Table */}
-      <div className="glass-card rounded-2xl border border-gray-800/80 p-6 space-y-4">
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-purple-400" />
-            <h3 className="text-base font-bold text-white">Current Active Milestones</h3>
+            <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+            <h3 className="text-base font-bold text-slate-900">Current Active Milestones</h3>
           </div>
-          <Link to="/freelancer/milestones" className="text-xs text-purple-400 hover:underline">
+          <Link to="/freelancer/milestones" className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold">
             View All Milestones
           </Link>
         </div>
 
         {currentMilestones.length === 0 ? (
-          <div className="p-8 text-center text-xs text-gray-400 bg-gray-900/30 rounded-xl border border-gray-800/60">
+          <div className="p-8 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-slate-200">
             No active milestones in progress. Explore open opportunities on the marketplace!
           </div>
         ) : (
@@ -253,24 +255,24 @@ export const FreelancerDashboardPage = () => {
             {currentMilestones.map((m) => (
               <div
                 key={m.id}
-                className="p-4 rounded-xl bg-gray-900/60 border border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2.5">
-                    <h4 className="text-sm font-bold text-white">{m.title}</h4>
+                    <h4 className="text-sm font-bold text-slate-900">{m.title}</h4>
                     <Badge variant={m.status} />
                   </div>
-                  <p className="text-xs text-gray-400">
-                    Contract: <span className="text-gray-200">{m.contract?.title}</span> • Client:{' '}
-                    <span className="text-gray-200">{m.contract?.client?.name}</span>
+                  <p className="text-xs text-slate-500">
+                    Contract: <span className="text-slate-800 font-medium">{m.contract?.title}</span> • Client:{' '}
+                    <span className="text-slate-800 font-medium">{m.contract?.client?.name}</span>
                   </p>
                   {m.acceptanceCriteria && (
-                    <p className="text-[11px] text-gray-500">Criteria: {m.acceptanceCriteria}</p>
+                    <p className="text-[11px] text-slate-400">Criteria: {m.acceptanceCriteria}</p>
                   )}
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-sm font-bold text-emerald-400">
+                  <span className="text-sm font-bold text-emerald-600">
                     ${Number(m.amount).toLocaleString()}
                   </span>
                   {m.status !== 'APPROVED' && (
@@ -279,7 +281,7 @@ export const FreelancerDashboardPage = () => {
                         setActiveMilestone(m);
                         setSubmitModalOpen(true);
                       }}
-                      className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-lg shadow-purple-600/30 transition-all flex items-center gap-1.5"
+                      className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5"
                     >
                       <Upload className="w-3.5 h-3.5" />
                       <span>Submit Deliverable</span>
@@ -299,14 +301,14 @@ export const FreelancerDashboardPage = () => {
         title="Submit Milestone Deliverable"
       >
         <form onSubmit={handleSubmitWork} className="space-y-4">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-slate-500">
             Submitting work for:{' '}
-            <span className="text-white font-semibold">{activeMilestone?.title}</span> ($
+            <span className="text-slate-900 font-bold">{activeMilestone?.title}</span> ($
             {Number(activeMilestone?.amount || 0).toLocaleString()}). The client will be notified to review and release payment.
           </p>
 
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
               Submission Notes & Walkthrough
             </label>
             <textarea
@@ -315,12 +317,12 @@ export const FreelancerDashboardPage = () => {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Detail the completed features, deployment URLs, testing instructions, or repo branch..."
-              className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-purple-500"
+              className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
               Deliverable URL (GitHub / Demo Link / Drive)
             </label>
             <input
@@ -328,7 +330,7 @@ export const FreelancerDashboardPage = () => {
               value={fileUrl}
               onChange={(e) => setFileUrl(e.target.value)}
               placeholder="https://github.com/org/repo or demo link"
-              className="w-full px-3.5 py-2 bg-gray-800 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-purple-500"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
             />
           </div>
 
@@ -336,14 +338,14 @@ export const FreelancerDashboardPage = () => {
             <button
               type="button"
               onClick={() => setSubmitModalOpen(false)}
-              className="px-4 py-2 text-xs text-gray-400 hover:text-white"
+              className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-lg shadow-purple-600/30 flex items-center gap-1.5"
+              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5"
             >
               {submitting ? (
                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -360,3 +362,5 @@ export const FreelancerDashboardPage = () => {
     </div>
   );
 };
+
+export default FreelancerDashboardPage;

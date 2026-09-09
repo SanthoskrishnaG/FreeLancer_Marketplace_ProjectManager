@@ -58,31 +58,31 @@ export const ProjectMarketplacePage = () => {
   }, [search, selectedCategory, selectedLevel]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 bg-slate-50 min-h-screen">
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-semibold mb-3">
-          <Sparkles className="w-3.5 h-3.5" />
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold mb-3">
+          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
           <span>Verified Opportunities</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
           Explore AI-Scoped Projects
         </h1>
-        <p className="text-sm text-gray-400 mt-1 max-w-2xl">
-          Browse verified contracts with pre-defined milestones, funded escrow protection, and direct client communication.
+        <p className="text-sm text-slate-500 mt-1 max-w-2xl">
+          Browse verified contracts with pre-defined milestones, funded escrow protection, and direct client collaboration.
         </p>
       </div>
 
       {/* Filter Bar */}
-      <div className="glass-card p-4 rounded-2xl border border-gray-800 flex flex-col md:flex-row items-stretch md:items-center gap-3">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by keywords, title, tech stack..."
-            className="w-full pl-10 pr-4 py-2 bg-gray-800/60 border border-gray-700/60 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 transition-all"
           />
         </div>
 
@@ -90,7 +90,7 @@ export const ProjectMarketplacePage = () => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-gray-800/60 border border-gray-700/60 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-indigo-500"
+            className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:border-indigo-600"
           >
             <option value="">All Categories</option>
             {categories.map((c) => (
@@ -103,7 +103,7 @@ export const ProjectMarketplacePage = () => {
           <select
             value={selectedLevel}
             onChange={(e) => setSelectedLevel(e.target.value)}
-            className="bg-gray-800/60 border border-gray-700/60 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-indigo-500"
+            className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:border-indigo-600"
           >
             <option value="">All Levels</option>
             <option value="ENTRY">Entry Level</option>
@@ -117,7 +117,7 @@ export const ProjectMarketplacePage = () => {
       {loading ? (
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="glass-card p-6 rounded-2xl space-y-3">
+            <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-3">
               <Skeleton className="w-1/3 h-6" />
               <Skeleton className="w-full h-12" />
               <div className="flex gap-4">
@@ -139,23 +139,23 @@ export const ProjectMarketplacePage = () => {
           {projects.map((project) => (
             <div
               key={project.id}
-              className="glass-card p-6 rounded-2xl border border-gray-800 hover:border-indigo-500/40 transition-all duration-300 group"
+              className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300 hover:shadow-md transition-all duration-200 group"
             >
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                 <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <h3 className="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors">
+                    <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
                       <Link to={`/projects/${project.id}`}>{project.title}</Link>
                     </h3>
                     <Badge variant={project.status} />
                     {project.category && (
-                      <span className="text-xs text-gray-400 bg-gray-800/60 px-2 py-0.5 rounded-md border border-gray-700">
+                      <span className="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
                         {project.category.name}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-sm text-gray-300 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
                     {project.description}
                   </p>
 
@@ -165,7 +165,7 @@ export const ProjectMarketplacePage = () => {
                       {project.skills.map((s, idx) => (
                         <span
                           key={idx}
-                          className="text-[11px] font-medium text-indigo-300 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20"
+                          className="text-[11px] font-medium text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100"
                         >
                           {s.skill?.name || s.name}
                         </span>
@@ -174,21 +174,21 @@ export const ProjectMarketplacePage = () => {
                   )}
 
                   {/* Meta details */}
-                  <div className="flex flex-wrap items-center gap-6 pt-2 text-xs text-gray-400">
-                    <span className="flex items-center gap-1.5 font-semibold text-white">
-                      <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                  <div className="flex flex-wrap items-center gap-6 pt-2 text-xs text-slate-500">
+                    <span className="flex items-center gap-1.5 font-bold text-slate-900">
+                      <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
                       ${Number(project.budget).toLocaleString()} Fixed
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <Briefcase className="w-3.5 h-3.5 text-indigo-400" />
+                      <Briefcase className="w-3.5 h-3.5 text-indigo-600" />
                       {project.experienceLevel} Level
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-sky-400" />
+                      <Users className="w-3.5 h-3.5 text-sky-600" />
                       {project._count?.proposals || 0} Proposals
                     </span>
                     {project.milestones && (
-                      <span className="flex items-center gap-1.5 text-indigo-300">
+                      <span className="flex items-center gap-1.5 text-indigo-600 font-medium">
                         <Sparkles className="w-3.5 h-3.5" />
                         {project.milestones.length} AI Milestones
                       </span>
@@ -197,12 +197,12 @@ export const ProjectMarketplacePage = () => {
                 </div>
 
                 <div className="flex md:flex-col items-center md:items-end justify-between shrink-0 gap-3">
-                  <div className="text-xs text-gray-400">
-                    Posted by <span className="text-gray-200 font-medium">{project.client?.name || 'Verified Client'}</span>
+                  <div className="text-xs text-slate-500">
+                    Posted by <span className="text-slate-800 font-semibold">{project.client?.name || 'Verified Client'}</span>
                   </div>
                   <Link
                     to={`/projects/${project.id}`}
-                    className="px-4 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/40 text-indigo-300 hover:text-white font-medium text-xs transition-all flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200/80 font-semibold text-xs transition-all flex items-center gap-1.5"
                   >
                     <span>View Project</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -216,3 +216,5 @@ export const ProjectMarketplacePage = () => {
     </div>
   );
 };
+
+export default ProjectMarketplacePage;

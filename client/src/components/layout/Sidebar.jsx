@@ -36,7 +36,7 @@ export const Sidebar = () => {
     { to: '/freelancer/dashboard', label: 'Overview', icon: LayoutDashboard },
     { to: '/freelancer/proposals', label: 'My Proposals', icon: FileText },
     { to: '/freelancer/contracts', label: 'Active Contracts', icon: FileCheck2 },
-    { to: '/freelancer/milestones', label: 'Milestones & Submissions', icon: CheckCircle2 },
+    { to: '/freelancer/milestones', label: 'Milestones & Work', icon: CheckCircle2 },
     { to: '/freelancer/time-tracking', label: 'Time Tracker', icon: Clock },
     { to: '/freelancer/earnings', label: 'Earnings & Invoices', icon: DollarSign },
     { to: '/freelancer/messages', label: 'Messages', icon: MessageSquare },
@@ -49,7 +49,7 @@ export const Sidebar = () => {
     { to: '/admin/projects', label: 'Project Moderation', icon: Briefcase },
     { to: '/admin/contracts', label: 'Contracts Oversight', icon: FileCheck2 },
     { to: '/admin/disputes', label: 'Dispute Arbitration', icon: AlertTriangle },
-    { to: '/admin/taxonomy', label: 'Taxonomy (Categories/Skills)', icon: Tags },
+    { to: '/admin/taxonomy', label: 'Taxonomy & Skills', icon: Tags },
     { to: '/admin/analytics', label: 'Platform Analytics', icon: BarChart3 },
     { to: '/admin/audit-logs', label: 'Security Audit Logs', icon: ScrollText },
   ];
@@ -59,18 +59,18 @@ export const Sidebar = () => {
   else if (isClient) links = clientLinks;
   else if (isFreelancer) links = freelancerLinks;
 
+  const displayName = user?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'WorkPulse User');
+
   return (
-    <aside className="w-64 bg-[#0d1322] border-r border-gray-800/80 flex flex-col shrink-0 min-h-[calc(100vh-4rem)]">
-      {/* User summary card in sidebar */}
-      <div className="p-5 border-b border-gray-800/60">
+    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 min-h-[calc(100vh-4rem)]">
+      {/* User profile brief in sidebar */}
+      <div className="p-4 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <img
-            src={user?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.name || 'user'}`}
-            alt={user?.name}
-            className="w-10 h-10 rounded-xl ring-2 ring-indigo-500/20 object-cover"
-          />
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0">
+            {displayName.charAt(0).toUpperCase()}
+          </div>
           <div className="min-w-0 flex-1">
-            <h4 className="text-sm font-semibold text-white truncate">{user?.name}</h4>
+            <h4 className="text-xs font-bold text-slate-900 truncate">{displayName}</h4>
             <Badge variant={user?.role} className="mt-0.5 text-[10px]" />
           </div>
         </div>
@@ -78,6 +78,9 @@ export const Sidebar = () => {
 
       {/* Navigation Links */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <div className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          Navigation
+        </div>
         {links.map((link) => {
           const Icon = link.icon;
           return (
@@ -86,12 +89,12 @@ export const Sidebar = () => {
               to={link.to}
               end={link.end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
                   isActive
-                    ? 'bg-indigo-600/15 text-indigo-400 border border-indigo-500/30 shadow-sm'
+                    ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-600 shadow-xs'
                     : link.highlight
-                    ? 'text-sky-400 hover:bg-sky-500/10 border border-sky-500/20'
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                    ? 'bg-gradient-to-r from-indigo-50/70 to-violet-50/70 text-indigo-700 border border-indigo-200/80 hover:bg-indigo-100/50'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`
               }
             >
@@ -104,3 +107,5 @@ export const Sidebar = () => {
     </aside>
   );
 };
+
+export default Sidebar;

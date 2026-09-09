@@ -2,28 +2,28 @@ import React from 'react';
 
 const badgeStyles = {
   // Statuses
-  OPEN: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  ACTIVE: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-  IN_PROGRESS: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
-  COMPLETED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  PENDING: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  UNDER_REVIEW: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  SUBMITTED: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
-  REVISION_REQUESTED: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  APPROVED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  REJECTED: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-  CANCELLED: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-  DISPUTED: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-  RESOLVED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  SUSPENDED: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-  BANNED: 'bg-red-500/20 text-red-400 border-red-500/30',
-  PAID: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  OPEN: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  ACTIVE: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  IN_PROGRESS: 'bg-blue-50 text-blue-700 border-blue-200',
+  COMPLETED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
+  UNDER_REVIEW: 'bg-amber-50 text-amber-700 border-amber-200',
+  SUBMITTED: 'bg-blue-50 text-blue-700 border-blue-200',
+  REVISION_REQUESTED: 'bg-purple-50 text-purple-700 border-purple-200',
+  APPROVED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  REJECTED: 'bg-rose-50 text-rose-700 border-rose-200',
+  CANCELLED: 'bg-rose-50 text-rose-700 border-rose-200',
+  DISPUTED: 'bg-rose-50 text-rose-700 border-rose-200',
+  RESOLVED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  SUSPENDED: 'bg-rose-50 text-rose-700 border-rose-200',
+  BANNED: 'bg-red-50 text-red-700 border-red-200',
+  PAID: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   // Roles
-  CLIENT: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
-  FREELANCER: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  ADMIN: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+  CLIENT: 'bg-sky-50 text-sky-700 border-sky-200',
+  FREELANCER: 'bg-violet-50 text-violet-700 border-violet-200',
+  ADMIN: 'bg-rose-50 text-rose-700 border-rose-200',
   // Default
-  DEFAULT: 'bg-gray-800 text-gray-300 border-gray-700',
+  DEFAULT: 'bg-slate-100 text-slate-700 border-slate-200',
 };
 
 export const Badge = ({ children, variant, className = '' }) => {
@@ -31,9 +31,11 @@ export const Badge = ({ children, variant, className = '' }) => {
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${style} ${className}`}
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style} ${className}`}
     >
       {children || variant}
     </span>
   );
 };
+
+export default Badge;

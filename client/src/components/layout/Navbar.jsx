@@ -30,36 +30,35 @@ export const Navbar = () => {
     return '/';
   };
 
+  const displayName = user?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'My Account');
+
   return (
-    <nav className="sticky top-0 z-40 w-full glass-card border-b border-gray-800/80 backdrop-blur-xl">
+    <nav className="sticky top-0 z-40 w-full bg-white border-b border-slate-200 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
+          
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-sky-500 to-emerald-400 p-0.5 shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-300">
-              <div className="w-full h-full bg-[#0B0F19] rounded-[10px] flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-indigo-400 group-hover:rotate-12 transition-transform duration-300" />
-              </div>
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-600/20 text-white group-hover:scale-105 transition-all">
+              <Sparkles className="w-4 h-4" />
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-lg text-white tracking-tight flex items-center gap-1.5">
-                WorkPulse <span className="text-xs px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 font-mono">AI</span>
-              </span>
-            </div>
+            <span className="font-extrabold text-lg text-slate-900 tracking-tight">
+              WorkPulse<span className="text-indigo-600">.ai</span>
+            </span>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-300">
-            <Link to="/projects" className="hover:text-white transition-colors flex items-center gap-1.5">
-              <Briefcase className="w-4 h-4 text-gray-400" />
+          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+            <Link to="/projects" className="hover:text-slate-900 transition-colors flex items-center gap-1.5">
+              <Briefcase className="w-4 h-4 text-slate-400" />
               Find Work
             </Link>
-            <Link to="/freelancers" className="hover:text-white transition-colors flex items-center gap-1.5">
-              <Users className="w-4 h-4 text-gray-400" />
+            <Link to="/freelancers" className="hover:text-slate-900 transition-colors flex items-center gap-1.5">
+              <Users className="w-4 h-4 text-slate-400" />
               Find Talent
             </Link>
             {isAuthenticated && (
-              <Link to={getDashboardLink()} className="hover:text-white transition-colors flex items-center gap-1.5 text-indigo-400">
+              <Link to={getDashboardLink()} className="hover:text-indigo-600 font-semibold transition-colors flex items-center gap-1.5 text-indigo-600">
                 <LayoutDashboard className="w-4 h-4" />
                 Dashboard
               </Link>
@@ -67,18 +66,19 @@ export const Navbar = () => {
           </div>
 
           {/* User / Auth Actions */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {/* Notification Bell */}
                 <div className="relative">
                   <button
-                    onClick={() => navigate(isClient ? '/client/dashboard' : '/freelancer/dashboard')}
-                    className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/60 transition-colors relative"
+                    onClick={() => navigate(isClient ? '/client/notifications' : isFreelancer ? '/freelancer/notifications' : '/client/notifications')}
+                    className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors relative"
+                    title="Notifications"
                   >
                     <Bell className="w-5 h-5" />
                     {latestNotification && (
-                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-2 ring-[#0B0F19] animate-ping" />
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-600 ring-2 ring-white animate-ping" />
                     )}
                   </button>
                 </div>
@@ -87,39 +87,37 @@ export const Navbar = () => {
                 <div className="relative">
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex items-center gap-2.5 p-1.5 pr-3 rounded-xl hover:bg-gray-800/60 border border-transparent hover:border-gray-700/60 transition-all"
+                    className="flex items-center gap-2.5 p-1.5 pr-2.5 rounded-xl hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-all"
                   >
-                    <img
-                      src={user?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.name || 'user'}`}
-                      alt={user?.name}
-                      className="w-8 h-8 rounded-lg object-cover ring-1 ring-gray-700"
-                    />
+                    <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                      {displayName.charAt(0).toUpperCase()}
+                    </div>
                     <div className="text-left">
-                      <div className="text-xs font-semibold text-white leading-tight">{user?.name}</div>
+                      <div className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[120px]">{displayName}</div>
                       <Badge variant={user?.role} className="text-[10px] py-0 px-1.5 mt-0.5" />
                     </div>
-                    <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                   </button>
 
                   {dropdownOpen && (
                     <div
-                      className="absolute right-0 mt-2 w-52 glass-card rounded-xl border border-gray-800 shadow-2xl py-2 z-50 animate-scaleUp"
+                      className="absolute right-0 mt-2 w-56 bg-white rounded-xl border border-slate-200 shadow-xl py-2 z-50 animate-fadeIn"
                       onClick={() => setDropdownOpen(false)}
                     >
-                      <div className="px-4 py-2 border-b border-gray-800">
-                        <p className="text-xs text-gray-400">Signed in as</p>
-                        <p className="text-sm font-semibold text-white truncate">{user?.email}</p>
+                      <div className="px-4 py-2 border-b border-slate-100">
+                        <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Signed in as</p>
+                        <p className="text-xs font-semibold text-slate-800 truncate">{user?.email}</p>
                       </div>
                       <Link
                         to={getDashboardLink()}
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800/60"
+                        className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 hover:text-indigo-600 hover:bg-indigo-50/50 transition-colors"
                       >
-                        <LayoutDashboard className="w-4 h-4 text-indigo-400" />
+                        <LayoutDashboard className="w-4 h-4 text-indigo-600" />
                         Dashboard
                       </Link>
                       <button
                         onClick={logout}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors text-left"
                       >
                         <LogOut className="w-4 h-4" />
                         Sign Out
@@ -129,16 +127,16 @@ export const Navbar = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                  className="px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02]"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-all"
                 >
                   Get Started
                 </Link>
@@ -150,7 +148,7 @@ export const Navbar = () => {
           <div className="flex md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
+              className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -160,18 +158,18 @@ export const Navbar = () => {
 
       {/* Mobile drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden glass-card border-b border-gray-800 px-4 pt-2 pb-6 space-y-3">
+        <div className="md:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-3">
           <Link
             to="/projects"
             onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-gray-300 hover:text-white"
+            className="block py-2 text-sm font-medium text-slate-700 hover:text-indigo-600"
           >
             Find Work
           </Link>
           <Link
             to="/freelancers"
             onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-gray-300 hover:text-white"
+            className="block py-2 text-sm font-medium text-slate-700 hover:text-indigo-600"
           >
             Find Talent
           </Link>
@@ -180,7 +178,7 @@ export const Navbar = () => {
               <Link
                 to={getDashboardLink()}
                 onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-indigo-400 font-semibold"
+                className="block py-2 text-sm text-indigo-600 font-semibold"
               >
                 Go to Dashboard ({user?.role})
               </Link>
@@ -189,7 +187,7 @@ export const Navbar = () => {
                   setMobileMenuOpen(false);
                   logout();
                 }}
-                className="block w-full text-left py-2 text-rose-400"
+                className="block w-full text-left py-2 text-sm text-rose-600 font-medium"
               >
                 Sign Out
               </button>
@@ -199,14 +197,14 @@ export const Navbar = () => {
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2 rounded-xl bg-gray-800 text-white font-medium"
+                className="w-full text-center py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold"
               >
                 Sign In
               </Link>
               <Link
                 to="/register"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2 rounded-xl bg-indigo-600 text-white font-semibold shadow-lg shadow-indigo-600/30"
+                className="w-full text-center py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold shadow-sm"
               >
                 Get Started
               </Link>
@@ -217,3 +215,5 @@ export const Navbar = () => {
     </nav>
   );
 };
+
+export default Navbar;

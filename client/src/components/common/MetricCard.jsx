@@ -2,40 +2,40 @@ import React from 'react';
 
 const colorThemes = {
   indigo: {
-    bg: 'bg-indigo-500/10',
-    border: 'border-indigo-500/20',
-    text: 'text-indigo-400',
-    glow: 'group-hover:border-indigo-500/40',
+    bg: 'bg-indigo-50',
+    border: 'border-indigo-100',
+    text: 'text-indigo-600',
+    hoverBorder: 'hover:border-indigo-300',
   },
   emerald: {
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/20',
-    text: 'text-emerald-400',
-    glow: 'group-hover:border-emerald-500/40',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-100',
+    text: 'text-emerald-600',
+    hoverBorder: 'hover:border-emerald-300',
   },
   sky: {
-    bg: 'bg-sky-500/10',
-    border: 'border-sky-500/20',
-    text: 'text-sky-400',
-    glow: 'group-hover:border-sky-500/40',
+    bg: 'bg-sky-50',
+    border: 'border-sky-100',
+    text: 'text-sky-600',
+    hoverBorder: 'hover:border-sky-300',
   },
   amber: {
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/20',
-    text: 'text-amber-400',
-    glow: 'group-hover:border-amber-500/40',
+    bg: 'bg-amber-50',
+    border: 'border-amber-100',
+    text: 'text-amber-600',
+    hoverBorder: 'hover:border-amber-300',
   },
   rose: {
-    bg: 'bg-rose-500/10',
-    border: 'border-rose-500/20',
-    text: 'text-rose-400',
-    glow: 'group-hover:border-rose-500/40',
+    bg: 'bg-rose-50',
+    border: 'border-rose-100',
+    text: 'text-rose-600',
+    hoverBorder: 'hover:border-rose-300',
   },
   purple: {
-    bg: 'bg-purple-500/10',
-    border: 'border-purple-500/20',
-    text: 'text-purple-400',
-    glow: 'group-hover:border-purple-500/40',
+    bg: 'bg-violet-50',
+    border: 'border-violet-100',
+    text: 'text-violet-600',
+    hoverBorder: 'hover:border-violet-300',
   },
 };
 
@@ -54,20 +54,20 @@ export const MetricCard = ({
   return (
     <div
       onClick={onClick}
-      className={`glass-card p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden group ${
-        theme.glow
-      } ${onClick ? 'cursor-pointer hover:-translate-y-1' : ''}`}
+      className={`bg-white p-5 rounded-2xl border border-slate-200 shadow-xs transition-all duration-200 relative overflow-hidden group ${
+        theme.hoverBorder
+      } ${onClick ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md' : 'hover:shadow-sm'}`}
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
             {title}
           </p>
-          <h4 className="text-2xl font-bold text-white tracking-tight">{value}</h4>
+          <h4 className="text-2xl font-extrabold text-slate-900 tracking-tight">{value}</h4>
         </div>
         {Icon && (
           <div
-            className={`w-11 h-11 rounded-xl flex items-center justify-center border ${theme.bg} ${theme.border} ${theme.text} transition-transform duration-300 group-hover:scale-110`}
+            className={`w-11 h-11 rounded-xl flex items-center justify-center border ${theme.bg} ${theme.border} ${theme.text} transition-transform duration-200 group-hover:scale-105`}
           >
             <Icon className="w-5 h-5" />
           </div>
@@ -79,17 +79,19 @@ export const MetricCard = ({
           {trend !== null && (
             <span
               className={`font-semibold flex items-center ${
-                trend >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                trend >= 0 ? 'text-emerald-600' : 'text-rose-600'
               }`}
             >
               {trend >= 0 ? '+' : ''}
               {trend}%
             </span>
           )}
-          {trendLabel && <span className="text-gray-400">{trendLabel}</span>}
-          {subtitle && <span className="text-gray-400">{subtitle}</span>}
+          {trendLabel && <span className="text-slate-500">{trendLabel}</span>}
+          {subtitle && <span className="text-slate-500">{subtitle}</span>}
         </div>
       )}
     </div>
   );
 };
+
+export default MetricCard;

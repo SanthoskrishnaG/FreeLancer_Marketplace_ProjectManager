@@ -77,11 +77,11 @@ export const DataTable = ({
   };
 
   return (
-    <div className="glass-card rounded-2xl border border-gray-800/80 overflow-hidden shadow-xl">
+    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
       {/* Table Toolbar */}
-      <div className="p-4 border-b border-gray-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-gray-900/40">
+      <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-50/50">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
@@ -90,20 +90,20 @@ export const DataTable = ({
               setCurrentPage(1);
             }}
             placeholder={searchPlaceholder}
-            className="w-full pl-9 pr-4 py-2 bg-gray-800/60 border border-gray-700/60 rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all"
           />
         </div>
 
         {filterKey && filterOptions.length > 0 && (
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="w-4 h-4 text-gray-400 hidden sm:block" />
+            <SlidersHorizontal className="w-4 h-4 text-slate-400 hidden sm:block" />
             <select
               value={selectedFilter}
               onChange={(e) => {
                 setSelectedFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="bg-gray-800/60 border border-gray-700/60 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-indigo-500"
+              className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:border-indigo-600"
             >
               <option value="ALL">All Statuses</option>
               {filterOptions.map((opt) => (
@@ -118,14 +118,14 @@ export const DataTable = ({
 
       {/* Table Element */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-gray-300">
-          <thead className="bg-gray-900/60 text-xs uppercase font-semibold text-gray-400 border-b border-gray-800 tracking-wider">
+        <table className="w-full text-left text-xs text-slate-700">
+          <thead className="bg-slate-50 text-[11px] uppercase font-bold text-slate-600 border-b border-slate-200 tracking-wider">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
                   onClick={() => col.sortable && handleSort(col.key)}
-                  className={`py-3.5 px-4 ${col.sortable ? 'cursor-pointer select-none hover:text-white' : ''} ${
+                  className={`py-3.5 px-4 ${col.sortable ? 'cursor-pointer select-none hover:text-slate-900' : ''} ${
                     col.className || ''
                   }`}
                 >
@@ -134,9 +134,9 @@ export const DataTable = ({
                     {col.sortable && sortKey === col.key && (
                       <span>
                         {sortOrder === 'asc' ? (
-                          <ChevronUp className="w-3.5 h-3.5 text-indigo-400" />
+                          <ChevronUp className="w-3.5 h-3.5 text-indigo-600" />
                         ) : (
-                          <ChevronDown className="w-3.5 h-3.5 text-indigo-400" />
+                          <ChevronDown className="w-3.5 h-3.5 text-indigo-600" />
                         )}
                       </span>
                     )}
@@ -145,13 +145,13 @@ export const DataTable = ({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800/60">
+          <tbody className="divide-y divide-slate-100">
             {loading ? (
               [...Array(itemsPerPage)].map((_, idx) => (
                 <tr key={idx}>
                   {columns.map((col, cIdx) => (
                     <td key={cIdx} className="py-4 px-4">
-                      <Skeleton className="w-24 h-4" />
+                      <Skeleton className="w-24 h-4 bg-slate-200" />
                     </td>
                   ))}
                 </tr>
@@ -167,12 +167,12 @@ export const DataTable = ({
                 <tr
                   key={row.id || idx}
                   onClick={() => onRowClick && onRowClick(row)}
-                  className={`transition-colors hover:bg-indigo-500/5 ${
+                  className={`transition-colors hover:bg-slate-50/80 ${
                     onRowClick ? 'cursor-pointer' : ''
                   }`}
                 >
                   {columns.map((col) => (
-                    <td key={col.key} className={`py-4 px-4 ${col.className || ''}`}>
+                    <td key={col.key} className={`py-3.5 px-4 ${col.className || ''}`}>
                       {col.render
                         ? col.render(row)
                         : typeof col.accessor === 'function'
@@ -189,30 +189,30 @@ export const DataTable = ({
 
       {/* Pagination Footer */}
       {pagination && !loading && sortedData.length > 0 && (
-        <div className="p-4 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400 bg-gray-900/30">
+        <div className="p-3.5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 bg-slate-50/50">
           <div>
-            Showing <span className="font-semibold text-gray-200">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
-            <span className="font-semibold text-gray-200">
+            Showing <span className="font-bold text-slate-800">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+            <span className="font-bold text-slate-800">
               {Math.min(currentPage * itemsPerPage, sortedData.length)}
             </span>{' '}
-            of <span className="font-semibold text-gray-200">{sortedData.length}</span> entries
+            of <span className="font-bold text-slate-800">{sortedData.length}</span> entries
           </div>
 
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
-              className="p-1.5 rounded-lg border border-gray-700 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-3 py-1 bg-gray-800 rounded-lg text-gray-200 font-medium">
+            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 font-semibold text-xs">
               {currentPage} / {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="p-1.5 rounded-lg border border-gray-700 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -222,3 +222,5 @@ export const DataTable = ({
     </div>
   );
 };
+
+export default DataTable;

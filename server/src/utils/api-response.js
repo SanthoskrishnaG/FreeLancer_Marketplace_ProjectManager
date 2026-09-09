@@ -1,22 +1,61 @@
 export class ApiResponse {
-  static success(data = null, message = 'Operation successful', meta = null) {
+  static success(res, data = null, message = 'Operation successful', meta = null) {
+    // Handle both signatures: (res, data, message, meta) and (data, message, meta)
+    if (res && typeof res.status === 'function') {
+      const response = {
+        success: true,
+        message,
+        data,
+      };
+      if (meta) response.meta = meta;
+      return res.status(200).json(response);
+    }
+
+    // Direct object return signature
     const response = {
       success: true,
-      message,
-      data,
+      message: typeof data === 'string' ? data : 'Operation successful',
+      data: res,
     };
-    if (meta) {
-      response.meta = meta;
-    }
+    if (message && typeof message === 'object') response.meta = message;
     return response;
   }
 
-  static error(message = 'An error occurred', code = 'ERROR', details = null) {
+  static created(res, data = null, message = 'Resource created successfully', meta = null) {
+    if (res && typeof res.status === 'function') {
+      const response = {
+        success: true,
+        message,
+        data,
+      };
+      if (meta) response.meta = meta;
+      return res.status(201).json(response);
+    }
+
+    return {
+      success: true,
+      message: typeof data === 'string' ? data : 'Resource created successfully',
+      data: res,
+    };
+  }
+
+  static error(res, message = 'An error occurred', statusCode = 400, details = null) {
+    if (res && typeof res.status === 'function') {
+      return res.status(statusCode).json({
+        success: false,
+        error: {
+          code: `HTTP_${statusCode}`,
+          message,
+          details,
+        },
+      });
+    }
+
     return {
       success: false,
       error: {
-        code,
-        message,
+        code: 'ERROR',
+        message: typeof res === 'string' ? res : message,
         details,
       },
     };

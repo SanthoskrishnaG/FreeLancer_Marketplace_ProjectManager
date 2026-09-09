@@ -5,7 +5,7 @@ import { Footer } from './Footer.jsx';
 
 export const PublicLayout = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#0B0F19] text-gray-100">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
       <Navbar />
       <main className="flex-1">
         <Outlet />
@@ -14,3 +14,5 @@ export const PublicLayout = () => {
     </div>
   );
 };
+
+export default PublicLayout;

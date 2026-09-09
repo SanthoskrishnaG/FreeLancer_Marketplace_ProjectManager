@@ -42,6 +42,8 @@ server.listen(PORT, async () => {
   console.log(`📁 Uploads served from ${uploadsDir}`);
 
   try {
+    const { ensureDatabase } = await import('./config/ensureDb.js');
+    await ensureDatabase();
     await prisma.$connect();
     console.log('✅ Connected to PostgreSQL database via Prisma');
   } catch (err) {

@@ -5,7 +5,7 @@ import { Sidebar } from './Sidebar.jsx';
 
 export const DashboardLayout = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#0B0F19] text-gray-100">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
       <Navbar />
       <div className="flex-1 flex flex-col md:flex-row">
         <Sidebar />
@@ -16,3 +16,5 @@ export const DashboardLayout = () => {
     </div>
   );
 };
+
+export default DashboardLayout;
