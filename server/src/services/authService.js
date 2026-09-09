@@ -16,13 +16,16 @@ export class AuthService {
 
     const passwordHash = await hashPassword(data.password);
     const verificationToken = crypto.randomBytes(32).toString('hex');
+    const nameParts = (data.name || '').trim().split(/\s+/);
+    const resolvedFirstName = data.firstName || nameParts[0] || 'User';
+    const resolvedLastName = data.lastName || (nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'Member');
 
     const user = await prisma.user.create({
       data: {
         email: data.email,
         passwordHash,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        firstName: resolvedFirstName,
+        lastName: resolvedLastName,
         role: data.role,
         verificationToken,
         isVerified: false,

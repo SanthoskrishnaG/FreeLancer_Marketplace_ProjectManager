@@ -23,7 +23,13 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    const message = error.response?.data?.message || error.message || 'Something went wrong';
+    const resData = error.response?.data;
+    const message =
+      resData?.error?.message ||
+      resData?.message ||
+      (typeof resData === 'string' ? resData : null) ||
+      error.message ||
+      'Something went wrong';
     if (error.response?.status === 401) {
       // Clear token if unauthenticated
       if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {

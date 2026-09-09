@@ -1,21 +1,26 @@
 import { z } from 'zod';
 
-export const registerSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters long')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
-  firstName: z.string().min(2, 'First name must be at least 2 characters'),
-  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-  role: z.enum(['CLIENT', 'FREELANCER'], {
-    errorMap: () => ({ message: 'Role must be either CLIENT or FREELANCER' }),
-  }),
-  companyName: z.string().optional(),
-  title: z.string().optional(),
-});
+export const registerSchema = z
+  .object({
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters long'),
+    name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    role: z.enum(['CLIENT', 'FREELANCER'], {
+      errorMap: () => ({ message: 'Role must be either CLIENT or FREELANCER' }),
+    }),
+    companyName: z.string().optional(),
+    title: z.string().optional(),
+    hourlyRate: z.number().optional(),
+  })
+  .refine(
+    (data) => data.name || (data.firstName && data.lastName),
+    {
+      message: 'Please provide either full name or both first and last name',
+      path: ['name'],
+    }
+  );
 
 export const loginSchema = z.object({
   email: z.string().email('Invalid email address'),

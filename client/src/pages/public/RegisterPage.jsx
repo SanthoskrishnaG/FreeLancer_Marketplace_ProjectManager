@@ -21,8 +21,14 @@ export const RegisterPage = () => {
     setLoading(true);
 
     try {
+      const nameParts = name.trim().split(/\s+/);
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'Member';
+
       const payload = {
         name,
+        firstName,
+        lastName,
         email,
         password,
         role,
