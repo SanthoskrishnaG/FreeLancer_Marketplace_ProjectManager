@@ -30,6 +30,7 @@ logs/
 # File uploads & storage
 uploads/
 temp/
+.pgdata/
 
 # OS metadata
 .DS_Store
