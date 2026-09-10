@@ -6,7 +6,7 @@ export const errorHandler = (err, _req, res, _next) => {
     return res.status(err.statusCode).json({
       success: false,
       error: {
-        code: `HTTP_${err.statusCode}`,
+        code: err.code || `HTTP_${err.statusCode}`,
         message: err.message,
         details: err.details,
       },
@@ -30,9 +30,10 @@ export const errorHandler = (err, _req, res, _next) => {
   console.error('Unhandled Server Error:', err);
 
   const statusCode = err.statusCode || 500;
-  const message = process.env.NODE_ENV === 'production' && statusCode === 500
-    ? 'An internal server error occurred'
-    : err.message || 'Internal Server Error';
+  const message =
+    process.env.NODE_ENV === 'production' && statusCode === 500
+      ? 'Something went wrong. Please try again.'
+      : err.message || 'Something went wrong. Please try again.';
 
   return res.status(statusCode).json({
     success: false,

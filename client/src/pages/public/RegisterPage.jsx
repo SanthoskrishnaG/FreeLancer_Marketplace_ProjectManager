@@ -92,7 +92,12 @@ export const RegisterPage = () => {
         navigate('/');
       }
     } catch (err) {
-      setError(err.message || 'Registration failed. Please check your information.');
+      const msg = err.message || '';
+      if (msg.toLowerCase().includes('already exists')) {
+        setError('An account with this email already exists. Please sign in instead.');
+      } else {
+        setError(msg || 'Registration failed. Please check your information.');
+      }
     } finally {
       setLoading(false);
     }
