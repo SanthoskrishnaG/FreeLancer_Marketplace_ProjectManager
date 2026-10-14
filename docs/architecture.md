@@ -46,8 +46,8 @@ The backend follows a layered and modular architecture ensuring clean separation
 - **`validators/`**: Request schema validation rules (e.g., using Zod).
 - **`utils/`**: Helper functions, error classes (e.g., `ApiError`), standard response formatters (`ApiResponse`).
 - **`modules/`**: High-cohesion modular domains grouping related routes, controllers, and services.
-- **`app.ts`**: Express application factory configuring middlewares and routing.
-- **`server.ts`**: Entry point handling network port binding and graceful lifecycle shutdowns.
+- **`app.js`**: Express application factory configuring middlewares and routing.
+- **`server.js`**: Entry point handling network port binding and graceful lifecycle shutdowns.
 
 ---
 

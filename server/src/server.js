@@ -17,6 +17,7 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+// Exactly one active HTTP server instance
 const server = http.createServer(app);
 
 // Initialize Socket.IO with production-safe CORS
@@ -50,7 +51,10 @@ const HOST = '0.0.0.0';
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`❌ Port ${PORT} is already in use (EADDRINUSE). Please verify whether an existing instance is running.`);
+    console.error(`\n❌ Port ${PORT} is already in use (EADDRINUSE).`);
+    console.error(`A stale Node.js process is likely occupying port ${PORT}.`);
+    console.error(`To find and stop only that process on Windows PowerShell, run:`);
+    console.error(`  Get-NetTCPConnection -LocalPort ${PORT} -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }\n`);
   } else {
     console.error('❌ Server startup error:', err.message);
   }
@@ -77,7 +81,7 @@ async function startServer() {
     await prisma.$queryRaw`SELECT 1`;
     console.log('✅ Connected to PostgreSQL database via Prisma');
 
-    // Bind HTTP & WebSocket server to 0.0.0.0 on assigned PORT
+    // Exactly one listen call
     server.listen(PORT, HOST, () => {
       console.log(`🚀 WorkPulse AI Server active in ${env.NODE_ENV} mode at http://${HOST}:${PORT}`);
       console.log(`📡 WebSocket server running on port ${PORT}`);
@@ -93,25 +97,64 @@ async function startServer() {
 
 startServer();
 
-// Graceful shutdown handling
+// Graceful shutdown handling for SIGINT, SIGTERM, and nodemon SIGUSR2
 const gracefulShutdown = async (signal) => {
   console.log(`\nReceived ${signal}. Stopping WorkPulse server gracefully...`);
-  server.close(async () => {
+
+  // Disconnect Socket.IO clients and close engine.io listeners
+  try {
+    if (io) {
+      io.close();
+    }
+  } catch (_e) {
+    // ignore
+  }
+
+  // Force close any existing HTTP/keep-alive connections so port 5000 is released immediately
+  try {
+    if (typeof server.closeAllConnections === 'function') {
+      server.closeAllConnections();
+    }
+    if (typeof server.closeIdleConnections === 'function') {
+      server.closeIdleConnections();
+    }
+  } catch (_e) {
+    // ignore
+  }
+
+  const exitAction = () => {
+    if (signal === 'SIGUSR2') {
+      process.kill(process.pid, 'SIGUSR2');
+    } else {
+      process.exit(0);
+    }
+  };
+
+  if (server.listening) {
+    server.close(async () => {
+      try {
+        await prisma.$disconnect();
+        console.log('Closed HTTP server and PostgreSQL connections. Exiting process safely.');
+      } catch (_e) {
+        // ignore on exit
+      }
+      exitAction();
+    });
+  } else {
     try {
       await prisma.$disconnect();
-      console.log('Closed HTTP server and PostgreSQL connections. Exiting process safely.');
     } catch (_e) {
       // ignore on exit
     }
-    process.exit(0);
-  });
+    exitAction();
+  }
 
-  // Force exit after 10s if connections refuse to close
+  // Fallback timeout to ensure process terminates
   setTimeout(() => {
-    console.error('Could not close connections in time, forcefully shutting down');
-    process.exit(1);
-  }, 10000);
+    exitAction();
+  }, 1000).unref();
 };
 
+process.once('SIGUSR2', () => gracefulShutdown('SIGUSR2'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));

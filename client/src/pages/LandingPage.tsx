@@ -284,8 +284,8 @@ export const LandingPage: React.FC = () => {
               <p>├── validators/ # Zod request schemas</p>
               <p>├── utils/ # ApiError, ApiResponse & Logger</p>
               <p>├── modules/ # Domain modules</p>
-              <p>├── app.ts # Express app setup</p>
-              <p>└── server.ts # Server startup & shutdown</p>
+              <p>├── app.js # Express app setup</p>
+              <p>└── server.js # Server startup & shutdown</p>
             </div>
           </div>
         </div>
