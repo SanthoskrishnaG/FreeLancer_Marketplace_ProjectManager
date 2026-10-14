@@ -112,8 +112,9 @@ The following confirmed unwanted and regenerable items were safely removed after
 | **Category B** | `client/src/main.tsx` | 361 Bytes | Obsolete entry point. `index.html` mounts `/src/main.jsx`. Referenced non-existent `./App.js`. |
 | **Category B** | `client/src/App.tsx` | 8.28 KB | Obsolete duplicate of `client/src/App.jsx`. `main.jsx` imports `App.jsx`. |
 | **Category B** | `server/uploads/` | 0 Bytes | Redundant empty directory. Both `server.js` and `app.js` mount root `uploads/` (`path.join(__dirname, '../../uploads')`). |
+| **Category A** | `django-admin/**/__pycache__/*.pyc` | 36.3 KB | Compiled Python bytecode cache files (7 files). Can be safely regenerated at runtime. Added to `.gitignore`. |
 
-**Total Immediate Disk Space Recovered:** **~1.07 MB**
+**Total Immediate Disk Space Recovered:** **~1.11 MB**
 
 ---
 

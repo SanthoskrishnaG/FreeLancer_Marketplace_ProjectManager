@@ -79,7 +79,12 @@ export async function ensureDatabase() {
     }
     console.log('✅ [Dev Only] Local PostgreSQL active on port 5432');
   } catch (err) {
-    console.warn('⚠️ [Dev Only] Embedded PostgreSQL skipped or not installed:', err.message);
+    console.warn(`⚠️ [Dev Only] Embedded PostgreSQL unavailable or skipped: ${err.message}`);
+    console.warn(
+      `ℹ️ [Dev Notice] If embedded PostgreSQL is not installed, please ensure a standard PostgreSQL server is running on port 5432.\n` +
+      `   Alternatively, configure DATABASE_URL in server/.env to point to your PostgreSQL instance.\n` +
+      `   Example: DATABASE_URL="postgresql://postgres:postgrespassword@localhost:5432/freelancer_marketplace?schema=public"`
+    );
   }
 }
 

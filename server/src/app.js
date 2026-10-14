@@ -51,7 +51,11 @@ app.use(
       const cleanOrigin = origin.trim().replace(/\/+$/, '');
       const allowed = parseAllowedOrigins();
 
-      if (allowed.includes(cleanOrigin) || env.NODE_ENV === 'development') {
+      if (
+        allowed.includes(cleanOrigin) ||
+        env.NODE_ENV === 'development' ||
+        cleanOrigin.endsWith('.vercel.app')
+      ) {
         return callback(null, true);
       }
 
