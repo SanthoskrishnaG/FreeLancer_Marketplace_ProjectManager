@@ -3,7 +3,7 @@ import { adminApi } from '../../api/adminApi.js';
 import { DataTable } from '../../components/common/DataTable.jsx';
 import { Badge } from '../../components/common/Badge.jsx';
 import { Link } from 'react-router-dom';
-import { Briefcase, Eye, ShieldAlert } from 'lucide-react';
+import { Briefcase, Eye, ShieldAlert, Sparkles, ExternalLink } from 'lucide-react';
 
 export const AdminProjectsPage = () => {
   const [projects, setProjects] = useState([]);
@@ -37,37 +37,47 @@ export const AdminProjectsPage = () => {
   const columns = [
     {
       key: 'title',
-      header: 'Project',
+      header: 'Marketplace Listing',
       sortable: true,
       render: (row) => (
         <div>
-          <Link to={`/projects/${row.id}`} className="font-semibold text-white hover:text-indigo-400">
-            {row.title}
+          <Link
+            to={`/projects/${row.id}`}
+            className="font-semibold text-slate-900 dark:text-[#F8FAFC] hover:text-[#3B82F6] dark:hover:text-[#60A5FA] flex items-center gap-1.5 transition-colors"
+          >
+            <span>{row.title}</span>
+            <ExternalLink className="w-3 h-3 opacity-60" />
           </Link>
-          <div className="text-xs text-gray-400">Client: {row.client?.name}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Client: <span className="text-slate-700 dark:text-slate-300 font-medium">{row.client?.name}</span>
+          </div>
         </div>
       ),
     },
     {
       key: 'budget',
-      header: 'Budget',
+      header: 'Allocated Budget',
       sortable: true,
       render: (row) => (
-        <span className="font-bold text-emerald-400">
-          ${Number(row.budget).toLocaleString()}
+        <span className="font-bold text-slate-900 dark:text-[#F8FAFC] font-mono">
+          ₹{Number(row.budget).toLocaleString('en-IN')}
         </span>
       ),
     },
     {
       key: 'status',
-      header: 'Status',
+      header: 'Listing Status',
       sortable: true,
       render: (row) => <Badge variant={row.status} />,
     },
     {
       key: 'proposals',
-      header: 'Proposals',
-      render: (row) => <span>{row._count?.proposals || 0}</span>,
+      header: 'Bid Volume',
+      render: (row) => (
+        <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
+          {row._count?.proposals || 0} bids
+        </span>
+      ),
     },
     {
       key: 'actions',
@@ -77,14 +87,14 @@ export const AdminProjectsPage = () => {
           {row.status === 'OPEN' ? (
             <button
               onClick={() => handleOverrideStatus(row.id, 'CLOSED')}
-              className="px-2 py-1 rounded bg-gray-800 hover:bg-rose-900/40 text-xs text-rose-300 border border-rose-500/20"
+              className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#111726] hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-semibold text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 transition-all shadow-xs"
             >
               Force Close
             </button>
           ) : (
             <button
               onClick={() => handleOverrideStatus(row.id, 'OPEN')}
-              className="px-2 py-1 rounded bg-gray-800 hover:bg-emerald-900/40 text-xs text-emerald-300 border border-emerald-500/20"
+              className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#111726] hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50 transition-all shadow-xs"
             >
               Reopen
             </button>
@@ -95,11 +105,18 @@ export const AdminProjectsPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-white">Project Moderation</h1>
-        <p className="text-xs text-gray-400 mt-0.5">
-          Inspect public job posts, detect terms violations, and apply administrative overrides.
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="border-b border-slate-200/80 dark:border-slate-800/80 pb-5">
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[#3B82F6] dark:text-[#60A5FA] text-xs font-mono font-medium mb-2">
+          <Briefcase className="w-3.5 h-3.5" />
+          <span>PROJECT MODERATION & GOVERNANCE</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
+          Marketplace Project Moderation
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Inspect client job postings, ensure technical accuracy, and apply administrative enforcement when needed.
         </p>
       </div>
 
@@ -107,7 +124,7 @@ export const AdminProjectsPage = () => {
         columns={columns}
         data={projects}
         loading={loading}
-        searchPlaceholder="Search projects..."
+        searchPlaceholder="Search projects by title..."
         filterKey="status"
         filterOptions={[
           { label: 'Open', value: 'OPEN' },
@@ -119,3 +136,5 @@ export const AdminProjectsPage = () => {
     </div>
   );
 };
+
+export default AdminProjectsPage;

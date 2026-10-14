@@ -6,7 +6,18 @@ export class AiProjectAnalysisService {
    * category, complexity, skills, timeline, and structured milestones.
    */
   static async analyzeRequirement(prompt, requestedBudget, requestedTimelineWeeks) {
-    if (envConfig.openai.apiKey) {
+    // 1. Prioritize Groq API (High-performance inference engine)
+    if (envConfig.groq?.apiKey) {
+      try {
+        return await this.callGroq(prompt, requestedBudget, requestedTimelineWeeks);
+      } catch (err) {
+        console.warn('⚠️ Groq API call failed or timed out. Falling back to Mock AI engine:', err.message);
+        return this.generateMockAnalysis(prompt, requestedBudget, requestedTimelineWeeks);
+      }
+    }
+
+    // 2. OpenAI API fallback if Groq is not configured
+    if (envConfig.openai?.apiKey) {
       try {
         return await this.callOpenAi(prompt, requestedBudget, requestedTimelineWeeks);
       } catch (err) {
@@ -15,7 +26,7 @@ export class AiProjectAnalysisService {
       }
     }
 
-    // Default development fallback
+    // 3. Default development mock fallback
     return this.generateMockAnalysis(prompt, requestedBudget, requestedTimelineWeeks);
   }
 
@@ -60,6 +71,71 @@ export class AiProjectAnalysisService {
     };
   }
 
+  static async callGroq(prompt, requestedBudget, requestedTimelineWeeks) {
+    const systemPrompt = `You are a Principal Software Architect and Project Manager.
+Analyze the user's project requirements and respond ONLY with a valid JSON object matching this schema:
+{
+  "category": string (e.g. "Web Development", "Mobile App Development", "AI & Machine Learning", "E-Commerce Solutions", "UI/UX Design"),
+  "complexity": "Low" | "Medium" | "High" | "Enterprise",
+  "estimatedTimelineWeeks": number,
+  "estimatedBudget": number,
+  "skills": string[],
+  "requirements": string[],
+  "milestones": [
+    {
+      "title": string,
+      "description": string,
+      "deliverables": string[],
+      "estimatedDuration": number (in days),
+      "budgetPercentage": number (sum must equal 100),
+      "dependencies": string[],
+      "acceptanceCriteria": string[]
+    }
+  ]
+}
+Do NOT wrap the output in markdown code blocks or commentary. Output raw JSON only.`;
+
+    const userMessage = `Project Requirement: "${prompt}".
+Target Budget: ${requestedBudget ? `$${requestedBudget}` : 'Flexible'}.
+Target Timeline: ${requestedTimelineWeeks ? `${requestedTimelineWeeks} weeks` : 'Standard'}.`;
+
+    const model = envConfig.groq?.model || 'openai/gpt-oss-120b';
+
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${envConfig.groq.apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      throw new Error(`Groq responded with status ${response.status}: ${errBody}`);
+    }
+
+    const data = await response.json();
+    let content = data.choices[0]?.message?.content?.trim();
+    if (!content) {
+      throw new Error('Empty response from Groq');
+    }
+
+    if (content.startsWith('```')) {
+      content = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    }
+
+    return JSON.parse(content);
+  }
+
   static async callOpenAi(prompt, requestedBudget, requestedTimelineWeeks) {
     const systemPrompt = `You are a Principal Software Architect and Project Manager.
 Analyze the user's project requirements and respond ONLY with a valid JSON object matching this schema:
@@ -95,7 +171,7 @@ Target Timeline: ${requestedTimelineWeeks ? `${requestedTimelineWeeks} weeks` : 
         Authorization: `Bearer ${envConfig.openai.apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: envConfig.openai?.model || 'gpt-4o',
         temperature: 0.2,
         messages: [
           { role: 'system', content: systemPrompt },
@@ -109,7 +185,15 @@ Target Timeline: ${requestedTimelineWeeks ? `${requestedTimelineWeeks} weeks` : 
     }
 
     const data = await response.json();
-    const content = data.choices[0]?.message?.content?.trim();
+    let content = data.choices[0]?.message?.content?.trim();
+    if (!content) {
+      throw new Error('Empty response from OpenAI');
+    }
+
+    if (content.startsWith('```')) {
+      content = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    }
+
     return JSON.parse(content);
   }
 

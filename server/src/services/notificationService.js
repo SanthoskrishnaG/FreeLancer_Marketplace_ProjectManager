@@ -9,6 +9,10 @@ export class NotificationService {
     });
   }
 
+  static async getUserNotifications(userId, query = {}) {
+    return this.getNotifications(userId);
+  }
+
   static async markAllAsRead(userId) {
     return prisma.notification.updateMany({
       where: { userId, isRead: false },
@@ -16,9 +20,15 @@ export class NotificationService {
     });
   }
 
-  static async markAsRead(userId, id) {
+  static async markAsRead(arg1, arg2) {
+    // Support both (id, userId) and (userId, id)
     return prisma.notification.updateMany({
-      where: { id, userId },
+      where: {
+        OR: [
+          { id: arg1, userId: arg2 },
+          { id: arg2, userId: arg1 },
+        ],
+      },
       data: { isRead: true },
     });
   }

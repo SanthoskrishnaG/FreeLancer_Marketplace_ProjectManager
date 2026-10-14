@@ -12,6 +12,8 @@ import {
   Check,
   CheckCheck,
   Smile,
+  Shield,
+  Circle,
 } from 'lucide-react';
 
 export const MessagesPage = () => {
@@ -91,11 +93,11 @@ export const MessagesPage = () => {
     };
 
     const handleTypingStart = ({ senderId }) => {
-      if (activeConversation && senderId !== user.id) setIsTyping(true);
+      if (activeConversation && senderId !== user?.id) setIsTyping(true);
     };
 
     const handleTypingStop = ({ senderId }) => {
-      if (activeConversation && senderId !== user.id) setIsTyping(false);
+      if (activeConversation && senderId !== user?.id) setIsTyping(false);
     };
 
     socket.on('new_message', handleNewMessage);
@@ -120,7 +122,7 @@ export const MessagesPage = () => {
     if (!activeConversation) return;
 
     const recipient =
-      activeConversation.client?.id === user.id
+      activeConversation.client?.id === user?.id
         ? activeConversation.freelancer
         : activeConversation.client;
 
@@ -131,10 +133,13 @@ export const MessagesPage = () => {
 
     try {
       if (socket) {
-        socket.emit('typing_stop', { conversationId: activeConversation.id, recipientId: recipient.id });
+        socket.emit('typing_stop', {
+          conversationId: activeConversation.id,
+          recipientId: recipient?.id,
+        });
         socket.emit('send_message', {
           conversationId: activeConversation.id,
-          recipientId: recipient.id,
+          recipientId: recipient?.id,
           content: currentText,
         });
       }
@@ -144,19 +149,24 @@ export const MessagesPage = () => {
   };
 
   const getOtherParticipant = (conv) => {
-    return conv.client?.id === user.id ? conv.freelancer : conv.client;
+    return conv.client?.id === user?.id ? conv.freelancer : conv.client;
   };
 
   return (
-    <div className="h-[calc(100vh-10rem)] glass-card rounded-3xl border border-gray-800 overflow-hidden flex shadow-2xl">
+    <div className="h-[calc(100vh-9.5rem)] cyber-card bg-white dark:bg-[#111726]/90 rounded-3xl border border-slate-200 dark:border-blue-500/25 shadow-xl overflow-hidden flex flex-col md:flex-row">
       {/* Conversations Sidebar */}
-      <div className="w-80 border-r border-gray-800 flex flex-col shrink-0 bg-gray-950/60">
-        <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-          <h2 className="text-base font-bold text-white">Direct Messages</h2>
-          <span className="text-xs text-indigo-400 font-medium">{conversations.length} Active</span>
+      <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 bg-slate-50/70 dark:bg-[#0D1220]/80">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#111726]">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-[#3B82F6]" />
+            <h2 className="text-sm font-bold text-slate-900 dark:text-[#F8FAFC]">Direct Messages</h2>
+          </div>
+          <span className="text-xs text-[#3B82F6] dark:text-[#60A5FA] font-mono font-semibold bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+            {conversations.length} Active
+          </span>
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-gray-800/50">
+        <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/80">
           {loadingConversations ? (
             <div className="p-4 space-y-3">
               {[...Array(4)].map((_, i) => (
@@ -170,8 +180,8 @@ export const MessagesPage = () => {
               ))}
             </div>
           ) : conversations.length === 0 ? (
-            <div className="p-8 text-center text-xs text-gray-500">
-              No active conversations. Connect with clients or freelancers on project pages.
+            <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+              No active conversations yet. Connect with clients or freelancers on project cards.
             </div>
           ) : (
             conversations.map((conv) => {
@@ -183,29 +193,33 @@ export const MessagesPage = () => {
                 <button
                   key={conv.id}
                   onClick={() => setActiveConversation(conv)}
-                  className={`w-full p-4 flex items-center gap-3 text-left transition-colors ${
-                    isSelected ? 'bg-indigo-600/15 border-l-2 border-indigo-500' : 'hover:bg-gray-800/40'
+                  className={`w-full p-4 flex items-center gap-3 text-left transition-all ${
+                    isSelected
+                      ? 'bg-blue-50/90 dark:bg-blue-900/25 border-l-4 border-[#3B82F6]'
+                      : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/50'
                   }`}
                 >
-                  <div className="relative">
+                  <div className="relative shrink-0">
                     <img
                       src={other?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${other?.name}`}
                       alt={other?.name}
-                      className="w-11 h-11 rounded-xl object-cover ring-1 ring-gray-700"
+                      className="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-blue-500/30"
                     />
                     {online && (
-                      <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-gray-900" />
+                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#111726]" />
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-white truncate">{other?.name}</h4>
-                      <span className="text-[10px] text-gray-500">
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-[#F8FAFC] truncate">
+                        {other?.name}
+                      </h4>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
                         {new Date(conv.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400 truncate mt-0.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                       {conv.messages?.[0]?.content || 'Started conversation'}
                     </p>
                   </div>
@@ -217,34 +231,39 @@ export const MessagesPage = () => {
       </div>
 
       {/* Messages Window */}
-      <div className="flex-1 flex flex-col bg-[#0B0F19]">
+      <div className="flex-1 flex flex-col bg-slate-50/30 dark:bg-[#080B12]/40">
         {activeConversation ? (
           <>
-            {/* Header */}
-            <div className="px-6 py-3.5 border-b border-gray-800 flex items-center justify-between bg-gray-900/40">
+            {/* Window Header */}
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#111726]">
               <div className="flex items-center gap-3">
-                <img
-                  src={
-                    getOtherParticipant(activeConversation)?.avatar ||
-                    `https://api.dicebear.com/7.x/bottts/svg?seed=${getOtherParticipant(activeConversation)?.name}`
-                  }
-                  alt={getOtherParticipant(activeConversation)?.name}
-                  className="w-9 h-9 rounded-xl object-cover ring-1 ring-gray-700"
-                />
+                <div className="relative">
+                  <img
+                    src={
+                      getOtherParticipant(activeConversation)?.avatar ||
+                      `https://api.dicebear.com/7.x/bottts/svg?seed=${getOtherParticipant(activeConversation)?.name}`
+                    }
+                    alt={getOtherParticipant(activeConversation)?.name}
+                    className="w-9 h-9 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-blue-500/30"
+                  />
+                  {isUserOnline(getOtherParticipant(activeConversation)?.id) && (
+                    <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#111726]" />
+                  )}
+                </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-[#F8FAFC]">
                     {getOtherParticipant(activeConversation)?.name}
                   </h3>
-                  <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
                     {isUserOnline(getOtherParticipant(activeConversation)?.id) ? (
-                      <span className="text-emerald-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                         Online
                       </span>
                     ) : (
                       <span>Offline</span>
                     )}
-                    {isTyping && <span className="text-indigo-400 italic">• typing...</span>}
+                    {isTyping && <span className="text-[#3B82F6] italic">• typing...</span>}
                   </div>
                 </div>
               </div>
@@ -259,21 +278,21 @@ export const MessagesPage = () => {
                   <Skeleton className="w-1/4 h-10 ml-auto" />
                 </div>
               ) : messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-gray-500 text-xs">
-                  <MessageSquare className="w-8 h-8 mb-2 opacity-40" />
-                  <span>Start a conversation...</span>
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 text-xs">
+                  <MessageSquare className="w-8 h-8 mb-2 opacity-30 text-[#3B82F6]" />
+                  <span>Start an encrypted conversation...</span>
                 </div>
               ) : (
                 messages.map((m) => {
-                  const isMe = m.senderId === user.id;
+                  const isMe = m.senderId === user?.id;
 
                   return (
                     <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                       <div
-                        className={`max-w-md px-4 py-2.5 rounded-2xl text-xs space-y-1 ${
+                        className={`max-w-md px-4 py-3 rounded-2xl text-xs space-y-1 ${
                           isMe
-                            ? 'bg-indigo-600 text-white rounded-br-xs shadow-md shadow-indigo-600/20'
-                            : 'bg-gray-800 text-gray-200 rounded-bl-xs border border-gray-700'
+                            ? 'bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white rounded-br-xs shadow-md'
+                            : 'bg-white dark:bg-[#111726] text-slate-800 dark:text-[#F8FAFC] rounded-bl-xs border border-slate-200 dark:border-slate-800 shadow-sm'
                         }`}
                       >
                         <p className="leading-relaxed whitespace-pre-line">{m.content}</p>
@@ -288,11 +307,14 @@ export const MessagesPage = () => {
                           </a>
                         )}
                         <span
-                          className={`block text-[10px] text-right ${
-                            isMe ? 'text-indigo-200' : 'text-gray-400'
+                          className={`block text-[10px] text-right font-mono ${
+                            isMe ? 'text-blue-100' : 'text-slate-400 dark:text-slate-500'
                           }`}
                         >
-                          {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(m.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
                         </span>
                       </div>
                     </div>
@@ -305,12 +327,12 @@ export const MessagesPage = () => {
             {/* Input Bar */}
             <form
               onSubmit={handleSendMessage}
-              className="p-4 border-t border-gray-800 bg-gray-900/40 flex items-center gap-3"
+              className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111726] flex items-center gap-3"
             >
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-gray-800 transition-colors"
+                className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 title="Attach deliverable file"
               >
                 <Paperclip className="w-4 h-4" />
@@ -342,14 +364,14 @@ export const MessagesPage = () => {
                     });
                   }
                 }}
-                placeholder={file ? `File attached: ${file.name}` : 'Type your message...'}
-                className="flex-1 px-4 py-2.5 bg-gray-800/80 border border-gray-700/60 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                placeholder={file ? `File attached: ${file.name}` : 'Type your encrypted message...'}
+                className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 focus:bg-white dark:focus:bg-[#0D1220] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
               />
 
               <button
                 type="submit"
                 disabled={!text.trim() && !file}
-                className="p-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-xl shadow-lg shadow-indigo-600/30 transition-all"
+                className="btn-electric p-2.5 rounded-xl text-white shadow-sm disabled:opacity-40"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -359,10 +381,12 @@ export const MessagesPage = () => {
           <EmptyState
             icon={MessageSquare}
             title="No conversation selected"
-            description="Select a chat from the left panel to message clients or freelancers."
+            description="Select a chat thread from the left panel to message clients or freelancers."
           />
         )}
       </div>
     </div>
   );
 };
+
+export default MessagesPage;

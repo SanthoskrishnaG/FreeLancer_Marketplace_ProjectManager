@@ -10,13 +10,14 @@ import {
   Briefcase,
   FileCheck2,
   AlertTriangle,
-  DollarSign,
+  IndianRupee,
   ShieldCheck,
   TrendingUp,
   RefreshCw,
   FileText,
   Activity,
   ArrowRight,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -34,7 +35,7 @@ import {
   Legend,
 } from 'recharts';
 
-const STATUS_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#38bdf8', '#f43f5e'];
+const CYBER_COLORS = ['#3B82F6', '#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444'];
 
 export const AdminDashboardPage = () => {
   const [data, setData] = useState(null);
@@ -64,19 +65,19 @@ export const AdminDashboardPage = () => {
   const { stats = {}, charts = {}, recentUsers = [], recentProjects = [] } = data || {};
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-5">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 text-rose-400 text-xs font-semibold mb-2">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[#3B82F6] dark:text-[#60A5FA] text-xs font-mono font-medium mb-2">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Master Governance Console</span>
+            <span>GLOBAL PLATFORM GOVERNANCE & TELEMETRY</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
             Platform Operations & Intelligence
           </h1>
-          <p className="text-xs sm:text-sm text-gray-400 mt-0.5">
-            Full platform metrics, escrow health, moderation queues, and real-time transaction oversight.
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Real-time escrow health, contract volume, dispute arbitration, and user moderation.
           </p>
         </div>
 
@@ -86,26 +87,27 @@ export const AdminDashboardPage = () => {
             fetchOverview();
           }}
           disabled={refreshing}
-          className="p-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 transition-colors self-start sm:self-auto"
+          className="p-2.5 rounded-xl bg-white dark:bg-[#111726] hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-blue-500/20 shadow-sm transition-all self-start sm:self-auto flex items-center gap-2 text-xs font-semibold"
           title="Refresh Metrics"
         >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-4 h-4 text-[#3B82F6] ${refreshing ? 'animate-spin' : ''}`} />
+          <span>Sync Telemetry</span>
         </button>
       </div>
 
-      {/* 10 Enterprise Platform Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      {/* Primary KPI Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Platform GMV"
-          value={`$${Number(stats.totalGMV || 0).toLocaleString()}`}
-          subtitle="Total transaction volume"
-          icon={DollarSign}
+          value={`₹${Number(stats.totalGMV || 0).toLocaleString('en-IN')}`}
+          subtitle="Cumulative transaction volume"
+          icon={IndianRupee}
           color="emerald"
         />
         <MetricCard
           title="Platform Fees"
-          value={`$${Number(stats.platformRevenue || 0).toLocaleString()}`}
-          subtitle="Platform revenue (10%)"
+          value={`₹${Number(stats.platformRevenue || 0).toLocaleString('en-IN')}`}
+          subtitle="Commission revenue (10%)"
           icon={TrendingUp}
           color="indigo"
         />
@@ -117,57 +119,66 @@ export const AdminDashboardPage = () => {
           color="sky"
         />
         <MetricCard
-          title="Active Contracts"
-          value={stats.activeContracts || 0}
-          subtitle={`${stats.totalContracts || 0} total created`}
-          icon={FileCheck2}
-          color="purple"
-        />
-        <MetricCard
           title="Open Disputes"
           value={stats.openDisputes || 0}
-          subtitle="Requires arbitration"
+          subtitle="Requiring arbitration"
           icon={AlertTriangle}
           color={stats.openDisputes > 0 ? 'rose' : 'emerald'}
         />
       </div>
 
-      {/* Secondary Metrics Bar */}
+      {/* Secondary Operational Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card p-4 rounded-xl border border-gray-800 flex items-center justify-between">
+        <div className="cyber-card bg-white dark:bg-[#111726]/85 p-5 rounded-2xl border border-slate-200 dark:border-blue-500/20 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs text-gray-400 font-medium">Active Projects</span>
-            <div className="text-xl font-bold text-white mt-0.5">{stats.activeProjects || 0}</div>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Projects</span>
+            <div className="text-xl font-bold text-slate-900 dark:text-[#F8FAFC] font-mono mt-0.5">
+              {stats.activeProjects || 0}
+            </div>
           </div>
-          <Briefcase className="w-6 h-6 text-indigo-400" />
+          <div className="p-2.5 rounded-xl bg-blue-500/10 text-[#3B82F6] dark:text-[#60A5FA]">
+            <Briefcase className="w-5 h-5" />
+          </div>
         </div>
 
-        <div className="glass-card p-4 rounded-xl border border-gray-800 flex items-center justify-between">
+        <div className="cyber-card bg-white dark:bg-[#111726]/85 p-5 rounded-2xl border border-slate-200 dark:border-blue-500/20 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs text-gray-400 font-medium">Submitted Proposals</span>
-            <div className="text-xl font-bold text-white mt-0.5">{stats.totalProposals || 0}</div>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Contracts</span>
+            <div className="text-xl font-bold text-slate-900 dark:text-[#F8FAFC] font-mono mt-0.5">
+              {stats.activeContracts || 0}
+            </div>
           </div>
-          <FileText className="w-6 h-6 text-sky-400" />
+          <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <FileCheck2 className="w-5 h-5" />
+          </div>
         </div>
 
-        <div className="glass-card p-4 rounded-xl border border-gray-800 flex items-center justify-between">
+        <div className="cyber-card bg-white dark:bg-[#111726]/85 p-5 rounded-2xl border border-slate-200 dark:border-blue-500/20 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs text-gray-400 font-medium">Unverified Freelancers</span>
-            <div className="text-xl font-bold text-amber-400 mt-0.5">{stats.unverifiedFreelancers || 0}</div>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Proposals</span>
+            <div className="text-xl font-bold text-slate-900 dark:text-[#F8FAFC] font-mono mt-0.5">
+              {stats.totalProposals || 0}
+            </div>
           </div>
-          <ShieldCheck className="w-6 h-6 text-amber-400" />
+          <div className="p-2.5 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
+            <FileText className="w-5 h-5" />
+          </div>
         </div>
 
-        <div className="glass-card p-4 rounded-xl border border-gray-800 flex items-center justify-between">
+        <div className="cyber-card bg-white dark:bg-[#111726]/85 p-5 rounded-2xl border border-slate-200 dark:border-blue-500/20 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs text-gray-400 font-medium">Total Projects</span>
-            <div className="text-xl font-bold text-white mt-0.5">{stats.totalProjects || 0}</div>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Projects Listed</span>
+            <div className="text-xl font-bold text-slate-900 dark:text-[#F8FAFC] font-mono mt-0.5">
+              {stats.totalProjects || 0}
+            </div>
           </div>
-          <Activity className="w-6 h-6 text-emerald-400" />
+          <div className="p-2.5 rounded-xl bg-purple-500/10 text-[#8B5CF6] dark:text-[#A78BFA]">
+            <Activity className="w-5 h-5" />
+          </div>
         </div>
       </div>
 
-      {/* Recharts Analytics Charts */}
+      {/* Analytics Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* GMV Trends (Area Chart) */}
         <ChartCard
@@ -180,28 +191,30 @@ export const AdminDashboardPage = () => {
               <AreaChart data={charts.financialTrends || []}>
                 <defs>
                   <linearGradient id="gmvGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.0} />
                   </linearGradient>
                   <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
-                <XAxis dataKey="month" stroke="#6b7280" fontSize={11} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={11} tickLine={false} tickFormatter={(v) => `$${v}`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} vertical={false} />
+                <XAxis dataKey="month" stroke="#64748B" fontSize={11} tickLine={false} />
+                <YAxis stroke="#64748B" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${v}`} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#111827',
-                    border: '1px solid #374151',
+                    backgroundColor: '#111726',
+                    border: '1px solid rgba(59, 130, 246, 0.3)',
                     borderRadius: '12px',
                     fontSize: '12px',
+                    color: '#F8FAFC',
+                    boxShadow: '0 8px 30px rgba(0,0,0,0.6)',
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: '11px', color: '#9ca3af' }} />
-                <Area type="monotone" dataKey="gmv" name="GMV ($)" stroke="#10b981" fill="url(#gmvGrad)" />
-                <Area type="monotone" dataKey="revenue" name="Platform Revenue ($)" stroke="#6366f1" fill="url(#revGrad)" />
+                <Legend wrapperStyle={{ fontSize: '11px', color: '#94A3B8' }} />
+                <Area type="monotone" dataKey="gmv" name="Gross Merchandise Volume (₹)" stroke="#3B82F6" strokeWidth={2.5} fill="url(#gmvGrad)" />
+                <Area type="monotone" dataKey="revenue" name="Platform Net Revenue (₹)" stroke="#8B5CF6" strokeWidth={2.5} fill="url(#revGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -209,8 +222,8 @@ export const AdminDashboardPage = () => {
 
         {/* Project Statuses (Pie Chart) */}
         <ChartCard
-          title="Projects by Status"
-          subtitle="Distribution of marketplace listings"
+          title="Marketplace Status Breakdown"
+          subtitle="Live distribution of client listings"
         >
           <div className="h-72 w-full flex items-center justify-center">
             {charts.projectsByStatus && charts.projectsByStatus.length > 0 ? (
@@ -224,51 +237,56 @@ export const AdminDashboardPage = () => {
                     cy="50%"
                     innerRadius={50}
                     outerRadius={80}
-                    paddingAngle={3}
+                    paddingAngle={4}
                   >
                     {charts.projectsByStatus.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={CYBER_COLORS[index % CYBER_COLORS.length]} stroke="transparent" />
                     ))}
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#111827',
-                      border: '1px solid #374151',
+                      backgroundColor: '#111726',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
                       borderRadius: '12px',
                       fontSize: '12px',
+                      color: '#F8FAFC',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.6)',
                     }}
                   />
-                  <Legend wrapperStyle={{ fontSize: '11px', color: '#9ca3af' }} />
+                  <Legend wrapperStyle={{ fontSize: '11px', color: '#94A3B8' }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="text-xs text-gray-500">No project status data</div>
+              <div className="text-xs text-slate-400">No project status data</div>
             )}
           </div>
         </ChartCard>
       </div>
 
-      {/* Quick Governance Tables: Recent Users & Recent Projects */}
+      {/* Governance Feeds: Recent Users & Recent Projects */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Registered Users */}
-        <div className="glass-card rounded-2xl border border-gray-800 p-6 space-y-4">
+        <div className="cyber-card bg-white dark:bg-[#111726]/85 rounded-3xl border border-slate-200 dark:border-blue-500/20 shadow-sm p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Users className="w-4 h-4 text-sky-400" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-[#F8FAFC] flex items-center gap-2">
+              <Users className="w-4 h-4 text-[#3B82F6]" />
               <span>Latest Platform Users</span>
             </h3>
-            <Link to="/admin/users" className="text-xs text-sky-400 hover:underline flex items-center gap-1">
+            <Link
+              to="/admin/users"
+              className="text-xs text-[#3B82F6] dark:text-[#60A5FA] font-semibold hover:underline flex items-center gap-1"
+            >
               <span>Directory</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
-          <div className="divide-y divide-gray-800">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800/80">
             {recentUsers.map((u) => (
               <div key={u.id} className="py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-white truncate">{u.name}</div>
-                  <div className="text-[11px] text-gray-400 truncate">{u.email}</div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-[#F8FAFC] truncate">{u.name}</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{u.email}</div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Badge variant={u.role} />
@@ -280,27 +298,34 @@ export const AdminDashboardPage = () => {
         </div>
 
         {/* Recent Projects */}
-        <div className="glass-card rounded-2xl border border-gray-800 p-6 space-y-4">
+        <div className="cyber-card bg-white dark:bg-[#111726]/85 rounded-3xl border border-slate-200 dark:border-blue-500/20 shadow-sm p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Briefcase className="w-4 h-4 text-indigo-400" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-[#F8FAFC] flex items-center gap-2">
+              <Briefcase className="w-4 h-4 text-[#8B5CF6]" />
               <span>Latest Market Projects</span>
             </h3>
-            <Link to="/admin/projects" className="text-xs text-indigo-400 hover:underline flex items-center gap-1">
+            <Link
+              to="/admin/projects"
+              className="text-xs text-[#8B5CF6] dark:text-[#A78BFA] font-semibold hover:underline flex items-center gap-1"
+            >
               <span>Moderation</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
-          <div className="divide-y divide-gray-800">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800/80">
             {recentProjects.map((p) => (
               <div key={p.id} className="py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-white truncate">{p.title}</div>
-                  <div className="text-[11px] text-gray-400 truncate">Client: {p.client?.name}</div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-[#F8FAFC] truncate">{p.title}</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    Client: {p.client?.name}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2.5 shrink-0">
-                  <span className="text-xs font-bold text-emerald-400">${Number(p.budget).toLocaleString()}</span>
+                  <span className="text-xs font-bold text-slate-900 dark:text-[#F8FAFC] font-mono">
+                    ₹{Number(p.budget).toLocaleString('en-IN')}
+                  </span>
                   <Badge variant={p.status} />
                 </div>
               </div>
@@ -311,3 +336,5 @@ export const AdminDashboardPage = () => {
     </div>
   );
 };
+
+export default AdminDashboardPage;

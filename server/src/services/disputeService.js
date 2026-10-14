@@ -1,139 +1,182 @@
+import { DisputeRepository } from '../repositories/dispute.repository.js';
+import { ContractRepository } from '../repositories/contract.repository.js';
+import { ProfileRepository } from '../repositories/profile.repository.js';
 import { prisma } from '../config/database.js';
 import { ApiError } from '../utils/api-error.js';
 
 export class DisputeService {
-  static async createDispute(userId, data) {
-    const contract = await prisma.contract.findUnique({
-      where: { id: data.contractId },
-      include: { client: true, freelancerProfile: true },
-    });
+  static async createDispute(userId, input) {
+    const { contractId, reason, description, evidence } = input;
 
-    if (!contract) {
-      throw ApiError.notFound('Contract not found');
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user) throw ApiError.unauthorized('Authentication required');
+
+    const contract = await ContractRepository.findContractById(contractId);
+    if (!contract) throw ApiError.notFound('Contract not found');
+
+    const isClient = user.clientProfile && contract.clientId === user.clientProfile.id;
+    const isFreelancer =
+      user.freelancerProfile && contract.freelancerProfileId === user.freelancerProfile.id;
+
+    if (!isClient && !isFreelancer && user.role !== 'ADMIN') {
+      throw ApiError.forbidden('Only parties to this contract can raise a dispute');
     }
 
-    const isClient = contract.client.userId === userId;
-    const isFreelancer = contract.freelancerProfile.userId === userId;
-
-    if (!isClient && !isFreelancer) {
-      throw ApiError.forbidden('Only contract participants can raise a dispute');
-    }
-
-    return prisma.$transaction(async (tx) => {
-      const dispute = await tx.dispute.create({
-        data: {
-          contractId: data.contractId,
-          initiatorId: userId,
-          reason: data.reason,
-          description: data.description,
-          evidence: data.evidence || [],
-          status: 'OPEN',
-        },
-      });
-
-      await tx.contract.update({
-        where: { id: data.contractId },
-        data: { status: 'DISPUTED' },
-      });
-
-      // Record audit log
-      await tx.auditLog.create({
-        data: {
-          userId,
-          action: 'CREATE',
-          entity: 'Dispute',
-          entityId: dispute.id,
-          details: JSON.stringify({ reason: data.reason, contractId: data.contractId }),
-        },
-      });
-
-      return dispute;
-    });
-  }
-
-  static async getDisputes(userId, role) {
-    const where = {};
-    if (role === 'CLIENT') {
-      where.contract = { client: { userId } };
-    } else if (role === 'FREELANCER') {
-      where.contract = { freelancerProfile: { userId } };
-    } else if (role !== 'ADMIN') {
-      where.initiatorId = userId;
-    }
-
-    return prisma.dispute.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        contract: {
-          select: {
-            id: true,
-            totalAmount: true,
-            project: { select: { id: true, title: true } },
-          },
-        },
-        initiator: { select: { firstName: true, lastName: true, email: true, role: true } },
-        _count: { select: { messages: true } },
-      },
-    });
-  }
-
-  static async getDisputeById(userId, disputeId) {
-    const dispute = await prisma.dispute.findUnique({
-      where: { id: disputeId },
-      include: {
-        contract: {
-          include: {
-            project: true,
-            client: { include: { user: true } },
-            freelancerProfile: { include: { user: true } },
-          },
-        },
-        initiator: { select: { id: true, firstName: true, lastName: true, email: true, role: true } },
-        messages: {
-          orderBy: { createdAt: 'asc' },
-          include: {
-            sender: { select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true } },
-          },
-        },
+    const existingDispute = await prisma.dispute.findFirst({
+      where: {
+        contractId,
+        status: { in: ['OPEN', 'UNDER_REVIEW'] },
       },
     });
 
-    if (!dispute) {
-      throw ApiError.notFound('Dispute not found');
+    if (existingDispute) {
+      throw ApiError.badRequest('An active dispute is already open for this contract');
+    }
+
+    const dispute = await DisputeRepository.createDispute({
+      contractId,
+      initiatorId: user.id,
+      reason,
+      description,
+      evidence: evidence || [],
+      status: 'OPEN',
+    });
+
+    await prisma.contract.update({
+      where: { id: contractId },
+      data: { status: 'DISPUTED' },
+    });
+
+    const counterPartyUserId = isClient
+      ? (contract.freelancerProfile?.userId || contract.freelancerProfile?.user?.id)
+      : (contract.client?.userId || contract.client?.user?.id);
+
+    if (counterPartyUserId) {
+      await prisma.notification.create({
+        data: {
+          userId: counterPartyUserId,
+          title: 'Dispute Raised on Contract',
+          message: `${user.firstName || 'A user'} has opened a dispute on contract "${contract.project?.title || 'Project'}": "${reason}".`,
+          type: 'DISPUTE',
+          link: `/disputes/${dispute.id}`,
+        },
+      });
     }
 
     return dispute;
   }
 
-  static async addDisputeMessage(userId, disputeId, { message, attachments = [] }) {
-    const dispute = await prisma.dispute.findUnique({
-      where: { id: disputeId },
-      include: { contract: { include: { client: true, freelancerProfile: true } } },
-    });
+  static async getUserDisputes(userId, query = {}) {
+    return this.getDisputes(userId, query);
+  }
 
-    if (!dispute) {
-      throw ApiError.notFound('Dispute not found');
-    }
+  static async getDisputes(userId, query = {}) {
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user) throw ApiError.unauthorized('Authentication required');
 
-    const isClient = dispute.contract.client.userId === userId;
-    const isFreelancer = dispute.contract.freelancerProfile.userId === userId;
+    const page = parseInt(query.page || '1', 10);
+    const limit = parseInt(query.limit || '10', 10);
+    const isAdmin = user.role === 'ADMIN';
 
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
-    if (!isClient && !isFreelancer && user?.role !== 'ADMIN') {
-      throw ApiError.forbidden('Unauthorized to participate in this dispute thread');
-    }
-
-    return prisma.disputeMessage.create({
-      data: {
-        disputeId,
-        senderId: userId,
-        message,
-        attachments,
-      },
-      include: {
-        sender: { select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true } },
-      },
+    return DisputeRepository.getDisputesList({
+      userId: user.id,
+      status: query.status,
+      isAdmin,
+      page,
+      limit,
     });
   }
+
+  static async getDisputeById(disputeId, userId) {
+    const dispute = await DisputeRepository.findDisputeById(disputeId);
+    if (!dispute) throw ApiError.notFound('Dispute case not found');
+    return dispute;
+  }
+
+  static async addDisputeMessage(userId, disputeId, input) {
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user) throw ApiError.unauthorized('Authentication required');
+
+    const dispute = await DisputeRepository.findDisputeById(disputeId);
+    if (!dispute) throw ApiError.notFound('Dispute case not found');
+
+    return DisputeRepository.addMessage({
+      disputeId,
+      senderId: user.id,
+      message: input.message,
+      attachments: input.attachments || [],
+    });
+  }
+
+  static async resolveDispute(adminUserId, disputeId, input) {
+    const admin = await ProfileRepository.getUserFullProfile(adminUserId);
+    if (!admin || admin.role !== 'ADMIN') {
+      throw ApiError.forbidden('Only administrators can resolve disputes');
+    }
+
+    const dispute = await DisputeRepository.findDisputeById(disputeId);
+    if (!dispute) throw ApiError.notFound('Dispute case not found');
+
+    const resolved = await DisputeRepository.updateDispute(disputeId, {
+      status: 'RESOLVED',
+      adminDecision: input.adminDecision,
+      resolutionNotes: input.resolutionNotes,
+      resolvedAt: new Date(),
+    });
+
+    await prisma.contract.update({
+      where: { id: dispute.contractId },
+      data: { status: 'COMPLETED' },
+    });
+
+    await DisputeRepository.recordAuditLog({
+      userId: admin.id,
+      action: 'UPDATE',
+      entity: 'Dispute',
+      entityId: disputeId,
+      details: JSON.stringify({
+        action: 'RESOLVE_DISPUTE',
+        adminDecision: input.adminDecision,
+        resolutionNotes: input.resolutionNotes,
+      }),
+    });
+
+    return resolved;
+  }
+
+  static async rejectDispute(adminUserId, disputeId, input) {
+    const admin = await ProfileRepository.getUserFullProfile(adminUserId);
+    if (!admin || admin.role !== 'ADMIN') {
+      throw ApiError.forbidden('Only administrators can reject dispute claims');
+    }
+
+    const dispute = await DisputeRepository.findDisputeById(disputeId);
+    if (!dispute) throw ApiError.notFound('Dispute case not found');
+
+    const rejected = await DisputeRepository.updateDispute(disputeId, {
+      status: 'REJECTED',
+      resolutionNotes: input.resolutionNotes,
+      resolvedAt: new Date(),
+    });
+
+    await prisma.contract.update({
+      where: { id: dispute.contractId },
+      data: { status: 'ACTIVE' },
+    });
+
+    await DisputeRepository.recordAuditLog({
+      userId: admin.id,
+      action: 'UPDATE',
+      entity: 'Dispute',
+      entityId: disputeId,
+      details: JSON.stringify({
+        action: 'REJECT_DISPUTE',
+        resolutionNotes: input.resolutionNotes,
+      }),
+    });
+
+    return rejected;
+  }
 }
+
+export default DisputeService;

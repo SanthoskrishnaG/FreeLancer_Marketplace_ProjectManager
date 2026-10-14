@@ -73,6 +73,7 @@ enum PaymentStatus {
   PENDING
   PROCESSING
   SUCCESS
+  COMPLETED
   FAILED
   REFUNDED
 }
@@ -141,6 +142,7 @@ model User {
   conversations        ConversationParticipant[]
   disputeMessages      DisputeMessage[]
   timeEntries          TimeEntry[]
+  projectFolders       ProjectFolder[]
 
   @@index([email])
   @@index([role])
@@ -197,6 +199,7 @@ model FreelancerProfile {
   submissions     MilestoneSubmission[]
   invoices        Invoice[]
   timeEntries     TimeEntry[]
+  projects        Project[]
 
   @@index([userId])
   @@index([isAvailable])
@@ -264,8 +267,17 @@ model FreelancerSkill {
 
 model Project {
   id              String             @id @default(uuid())
-  clientId        String
-  client          ClientProfile      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId        String?
+  client          ClientProfile?     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  freelancerId    String?
+  freelancer      FreelancerProfile? @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  isIdea          Boolean            @default(false)
+  summary         String?
+  durationWeeks   Int?
+  durationUnit    String?            @default("weeks")
+  startDate       DateTime?
+  targetEndDate   DateTime?
+  referenceLinks  String[]           @default([])
   categoryId      String?
   category        Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   title           String
@@ -292,8 +304,11 @@ model Project {
   conversations   Conversation[]
   aiRequirements  ProjectRequirement[]
   timeEntries     TimeEntry[]
+  folders         ProjectFolder[]
 
   @@index([clientId])
+  @@index([freelancerId])
+  @@index([isIdea])
   @@index([categoryId])
   @@index([status])
   @@index([budget])
@@ -751,4 +766,37 @@ model AuditLog {
   @@index([userId])
   @@index([entity, entityId])
   @@index([action])
+}
+
+// ----------------------------------------------------
+// Project Folders & Files
+// ----------------------------------------------------
+
+model ProjectFolder {
+  id          String        @id @default(uuid())
+  projectId   String
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  createdById String
+  createdBy   User          @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  files       ProjectFile[]
+
+  @@unique([projectId, name])
+  @@index([projectId])
+  @@index([createdById])
+}
+
+model ProjectFile {
+  id        String         @id @default(uuid())
+  folderId  String
+  folder    ProjectFolder  @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  name      String
+  url       String
+  size      Int?
+  mimeType  String?
+  createdAt DateTime       @default(now())
+
+  @@index([folderId])
 }

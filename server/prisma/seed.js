@@ -111,7 +111,7 @@ async function main() {
   }
   console.log(`✅ Seeded ${skillsData.length} skills`);
 
-  // 3. Admin User
+  // 3. Admin Users
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@market.io' },
     update: {},
@@ -126,10 +126,26 @@ async function main() {
       location: 'San Francisco, CA',
     },
   });
-  console.log(`✅ Seeded Admin User: ${adminUser.email}`);
+
+  await prisma.user.upsert({
+    where: { email: 'admin@marketplace.com' },
+    update: {},
+    create: {
+      email: 'admin@marketplace.com',
+      passwordHash,
+      firstName: 'System',
+      lastName: 'Administrator',
+      role: 'ADMIN',
+      isVerified: true,
+      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      location: 'San Francisco, CA',
+    },
+  });
+  console.log(`✅ Seeded Admin Users: admin@market.io & admin@marketplace.com`);
 
   // 4. Clients (10)
   const clientDataList = [
+    { firstName: 'Demo', lastName: 'Client', email: 'client1@marketplace.com', company: 'Marketplace Enterprise', industry: 'Technology', country: 'United States', desc: 'Enterprise client account.' },
     { firstName: 'Sarah', lastName: 'Connor', email: 'sarah.c@cyberdyne.io', company: 'Cyberdyne Innovations', industry: 'Robotics & AI', country: 'United States', desc: 'Pioneering autonomous systems and cloud infrastructure.' },
     { firstName: 'Marcus', lastName: 'Vance', email: 'marcus@vancemedia.com', company: 'Vance Media Group', industry: 'Publishing & Media', country: 'United Kingdom', desc: 'Digital media agency specializing in video and interactive publications.' },
     { firstName: 'Elena', lastName: 'Rostova', email: 'elena@biomedix.org', company: 'BioMedix Health', industry: 'Healthcare & Life Sciences', country: 'Canada', desc: 'Next-generation patient tracking and healthcare portal platforms.' },
@@ -176,6 +192,7 @@ async function main() {
 
   // 5. Freelancers (20)
   const freelancerDataList = [
+    { firstName: 'Demo', lastName: 'Freelancer', email: 'freelancer1@marketplace.com', title: 'Full Stack Web & Realtime Engineer', rate: 90, exp: 6, level: 'EXPERT', country: 'United States', skills: ['React', 'Node.js', 'PostgreSQL', 'Socket.IO'], bio: 'Full stack development and real-time collaboration specialist.' },
     { firstName: 'Alex', lastName: 'Rivera', email: 'alex.rivera@freelance.io', title: 'Senior Full Stack React & Node Architect', rate: 95, exp: 8, level: 'EXPERT', country: 'United States', skills: ['React', 'Node.js', 'PostgreSQL', 'Tailwind CSS', 'Docker'], bio: 'Specialized in ultra-responsive SaaS platforms and high-throughput microservices.' },
     { firstName: 'Maya', lastName: 'Patel', email: 'maya.patel@freelance.io', title: 'Lead UI/UX Product Designer & Design Systems', rate: 85, exp: 6, level: 'EXPERT', country: 'India', skills: ['Figma', 'UI/UX Design', 'Wireframing', 'User Research'], bio: 'Crafting aesthetic, high-conversion interfaces and comprehensive design systems.' },
     { firstName: 'Lukas', lastName: 'Novak', email: 'lukas.novak@freelance.io', title: 'AI & Machine Learning Engineer | LLM Specialist', rate: 120, exp: 7, level: 'EXPERT', country: 'Czech Republic', skills: ['Python', 'OpenAI API', 'PyTorch', 'LangChain', 'PostgreSQL'], bio: 'Building custom generative AI workflows, RAG agents, and fine-tuned embeddings.' },

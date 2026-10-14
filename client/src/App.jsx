@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { SocketProvider } from './context/SocketContext.jsx';
 import { ProtectedRoute } from './components/common/ProtectedRoute.jsx';
@@ -54,10 +55,11 @@ import { AdminReviewsPage } from './pages/admin/AdminReviewsPage.jsx';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <SocketProvider>
-          <Routes>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <SocketProvider>
+            <Routes>
             {/* Public Layout Routes */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={<LandingPage />} />
@@ -92,7 +94,8 @@ export default function App() {
               <Route path="/freelancer" element={<DashboardLayout />}>
                 <Route index element={<Navigate to="/freelancer/dashboard" replace />} />
                 <Route path="dashboard" element={<FreelancerDashboardPage />} />
-                <Route path="projects" element={<ProjectMarketplacePage />} />
+                <Route path="projects" element={<ClientProjectsPage />} />
+                <Route path="projects/create" element={<CreateProjectPage />} />
                 <Route path="projects/:id" element={<ProjectDetailsPage />} />
                 <Route path="proposals" element={<FreelancerProposalsPage />} />
                 <Route path="contracts" element={<FreelancerContractsPage />} />
@@ -131,5 +134,6 @@ export default function App() {
         </SocketProvider>
       </AuthProvider>
     </BrowserRouter>
-  );
+  </ThemeProvider>
+);
 }

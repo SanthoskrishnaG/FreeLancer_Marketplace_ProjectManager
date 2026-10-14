@@ -30,7 +30,7 @@ export interface AIGeneratedMilestone {
 }
 
 export interface AIMilestoneResponse {
-  source: 'openai' | 'rule_based_fallback';
+  source: 'groq' | 'openai' | 'rule_based_fallback';
   summary: string;
   milestones: AIGeneratedMilestone[];
   metadata: {

@@ -10,7 +10,6 @@ import {
   Clock,
   Star,
   CheckCircle2,
-  XCircle,
   ArrowLeft,
   Briefcase,
   FileCheck2,
@@ -45,11 +44,10 @@ export const ClientProjectProposalsPage = () => {
   }, [projectId]);
 
   const handleAcceptProposal = async (proposalId) => {
-    if (!window.confirm('Accept this proposal? A contract will be automatically generated.')) return;
+    if (!window.confirm('Accept this proposal? An active contract will be generated in PostgreSQL.')) return;
     setAcceptingId(proposalId);
     try {
-      const res = await proposalApi.acceptProposal(proposalId);
-      alert('Proposal accepted! Contract generated successfully.');
+      await proposalApi.acceptProposal(proposalId);
       navigate('/client/contracts');
     } catch (err) {
       alert(err.message || 'Failed to accept proposal');
@@ -69,7 +67,7 @@ export const ClientProjectProposalsPage = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 max-w-5xl mx-auto">
         <Skeleton className="w-48 h-6" />
         <Skeleton className="w-full h-32" />
         <Skeleton className="w-full h-32" />
@@ -78,22 +76,23 @@ export const ClientProjectProposalsPage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl mx-auto">
       <Link
         to="/client/projects"
-        className="inline-flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-white"
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-blue-400 transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
-        Back to My Projects
+        <ArrowLeft className="w-3.5 h-3.5" />
+        <span>Back to My Projects</span>
       </Link>
 
-      <div className="glass-card p-6 rounded-2xl border border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Project Header Summary */}
+      <div className="cyber-card bg-white dark:bg-[#111726]/85 p-5 sm:p-6 rounded-2xl border border-slate-200/90 dark:border-blue-500/20 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs text-indigo-400 font-semibold uppercase tracking-wider">Proposals for:</span>
-          <h1 className="text-xl font-bold text-white mt-0.5">{project?.title}</h1>
-          <p className="text-xs text-gray-400 mt-1">
-            Budget: <span className="text-emerald-400 font-semibold">${Number(project?.budget).toLocaleString()}</span> • Received:{' '}
-            <span className="text-white font-semibold">{proposals.length} proposal(s)</span>
+          <span className="text-xs text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">Candidate Proposals</span>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-[#F8FAFC] mt-0.5">{project?.title}</h1>
+          <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1">
+            Budget: <span className="text-slate-800 dark:text-emerald-400 font-bold">₹{Number(project?.budget).toLocaleString('en-IN')}</span> • Received:{' '}
+            <span className="text-slate-800 dark:text-white font-semibold">{proposals.length} proposal{proposals.length !== 1 ? 's' : ''}</span>
           </p>
         </div>
       </div>
@@ -102,10 +101,10 @@ export const ClientProjectProposalsPage = () => {
         <EmptyState
           icon={Briefcase}
           title="No proposals received yet"
-          description="Freelancers are discovering your project. Check back shortly."
+          description="Candidates are currently browsing the marketplace. New proposals will appear here as they are submitted."
         />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           {proposals.map((prop) => {
             const freelancer = prop.freelancer || {};
             const profile = freelancer.freelancerProfile || {};
@@ -114,73 +113,73 @@ export const ClientProjectProposalsPage = () => {
             return (
               <div
                 key={prop.id}
-                className="glass-card p-6 rounded-2xl border border-gray-800 space-y-4 hover:border-gray-700 transition-colors"
+                className="cyber-card bg-white dark:bg-[#111726]/85 p-5 sm:p-6 rounded-2xl border border-slate-200/90 dark:border-blue-500/15 hover:dark:border-blue-500/30 shadow-sm space-y-4"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="flex items-start gap-3.5">
                     <img
                       src={freelancer.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${freelancer.name}`}
                       alt={freelancer.name}
-                      className="w-12 h-12 rounded-xl object-cover ring-2 ring-indigo-500/20"
+                      className="w-12 h-12 rounded-xl object-cover border border-blue-500/30 shrink-0"
                     />
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-white">{freelancer.name}</h3>
+                        <h2 className="text-sm font-bold text-slate-900 dark:text-[#F8FAFC]">{freelancer.name}</h2>
                         <Badge variant={prop.status} />
                       </div>
-                      <p className="text-xs text-gray-400">{profile.title || 'Freelancer'}</p>
-                      <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
-                        <span className="flex items-center gap-1 text-amber-400 font-semibold">
-                          <Star className="w-3.5 h-3.5 fill-current" />
+                      <p className="text-xs text-slate-500 dark:text-[#94A3B8]">{profile.title || 'Specialist'}</p>
+                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        <span className="flex items-center gap-1 text-amber-500 font-medium">
+                          <Star className="w-3 h-3 fill-current" />
                           {Number(profile.rating || 5.0).toFixed(1)}
                         </span>
                         <span>•</span>
-                        <span>{profile.completedProjectsCount || 0} completed jobs</span>
+                        <span>{profile.completedProjectsCount || 0} completed</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between shrink-0 gap-1 bg-gray-900/60 p-3 rounded-xl border border-gray-800">
-                    <span className="text-xs text-gray-400">Bid Amount</span>
-                    <span className="text-xl font-extrabold text-emerald-400">
-                      ${Number(prop.bidAmount).toLocaleString()}
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between shrink-0 gap-0.5 bg-slate-50 dark:bg-[#0D1220] px-3.5 py-2 rounded-xl border border-slate-200/70 dark:border-blue-500/20">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Bid Amount</span>
+                    <span className="text-base font-bold text-slate-900 dark:text-emerald-400">
+                      ₹{Number(prop.bidAmount).toLocaleString('en-IN')}
                     </span>
-                    <span className="text-[11px] text-gray-400">
-                      in ~{prop.estimatedDurationDays || 30} days
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Est: {prop.estimatedDuration || `${prop.estimatedDurationDays || 14} days`}
                     </span>
                   </div>
                 </div>
 
                 {/* Cover Letter */}
-                <div className="bg-gray-900/40 p-4 rounded-xl border border-gray-800/80">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">
-                    Cover Letter & Approach:
-                  </h4>
-                  <p className="text-xs text-gray-300 whitespace-pre-line leading-relaxed">
+                <div className="bg-slate-50 dark:bg-[#0D1220]/70 p-4 rounded-xl border border-slate-200/70 dark:border-blue-500/15">
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-blue-400 mb-1">
+                    Candidate Proposal:
+                  </h3>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-line leading-relaxed">
                     {prop.coverLetter}
                   </p>
                 </div>
 
                 {/* Actions */}
                 {isPending && (
-                  <div className="flex items-center justify-end gap-3 pt-2">
+                  <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-blue-500/10">
                     <button
                       onClick={() => handleRejectProposal(prop.id)}
-                      className="px-4 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 border border-rose-500/20 transition-colors"
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200 dark:border-blue-500/20 hover:bg-slate-50 dark:hover:bg-blue-950/30 transition-colors"
                     >
                       Decline
                     </button>
                     <button
                       onClick={() => handleAcceptProposal(prop.id)}
                       disabled={acceptingId === prop.id}
-                      className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5"
+                      className="btn-electric px-4 py-2 rounded-xl text-white text-xs font-semibold shadow-md flex items-center gap-1.5"
                     >
                       {acceptingId === prop.id ? (
-                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <>
-                          <FileCheck2 className="w-4 h-4" />
-                          <span>Accept & Create Contract</span>
+                          <FileCheck2 className="w-3.5 h-3.5" />
+                          <span>Accept & Start Contract</span>
                         </>
                       )}
                     </button>
@@ -194,3 +193,5 @@ export const ClientProjectProposalsPage = () => {
     </div>
   );
 };
+
+export default ClientProjectProposalsPage;

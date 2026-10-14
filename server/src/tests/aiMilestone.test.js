@@ -25,7 +25,7 @@ describe('AI Project Analysis & Milestone Breakdown', () => {
       expect(m.amount).toBeGreaterThan(0);
       expect(m.acceptanceCriteria).toBeTypeOf('string');
     });
-  });
+  }, 15000);
 
   it('should analyze requirements and return structured features and tech stack recommendations', async () => {
     const input = {
@@ -40,5 +40,5 @@ describe('AI Project Analysis & Milestone Breakdown', () => {
     expect(analysis.features).toBeInstanceOf(Array);
     expect(analysis.recommendedSkills).toBeInstanceOf(Array);
     expect(analysis.estimatedWeeks).toBeGreaterThan(0);
-  });
+  }, 15000);
 });

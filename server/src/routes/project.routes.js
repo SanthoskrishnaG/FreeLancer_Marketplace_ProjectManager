@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { ProjectController } from '../controllers/projectController.js';
 import { authenticate, authorize } from '../middleware/auth.middleware.js';
 import { validate } from '../middleware/index.js';
-import { createProjectSchema } from '../validators/project.validator.js';
+import { createProjectSchema, createProjectIdeaSchema } from '../validators/project.validator.js';
 
 const router = Router();
 
@@ -20,10 +20,26 @@ router.post(
   validate(createProjectSchema),
   ProjectController.createProject
 );
+
+// Protected Freelancer routes (Project Ideas)
+router.post(
+  '/ideas',
+  authenticate,
+  authorize(['FREELANCER', 'ADMIN']),
+  validate(createProjectIdeaSchema),
+  ProjectController.createProjectIdea
+);
+router.get(
+  '/my/ideas',
+  authenticate,
+  authorize(['FREELANCER', 'ADMIN']),
+  ProjectController.getFreelancerProjects
+);
+
 router.get(
   '/my/projects',
   authenticate,
-  authorize(['CLIENT', 'ADMIN']),
+  authorize(['CLIENT', 'FREELANCER', 'ADMIN']),
   ProjectController.getClientProjects
 );
 router.put('/:id', authenticate, ProjectController.updateProject);
@@ -68,5 +84,12 @@ router.post(
     );
   }
 );
+
+// Project Folders & Records
+router.get('/:projectId/folders', authenticate, ProjectController.getProjectFolders);
+router.post('/:projectId/folders', authenticate, ProjectController.createProjectFolder);
+router.delete('/:projectId/folders/:folderId', authenticate, ProjectController.deleteProjectFolder);
+router.post('/:projectId/folders/:folderId/files', authenticate, ProjectController.addProjectFile);
+router.delete('/:projectId/folders/:folderId/files/:fileId', authenticate, ProjectController.deleteProjectFile);
 
 export default router;

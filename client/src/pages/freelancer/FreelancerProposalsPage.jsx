@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { proposalApi } from '../../api/proposalApi.js';
 import { DataTable } from '../../components/common/DataTable.jsx';
 import { Badge } from '../../components/common/Badge.jsx';
-import { Briefcase, DollarSign, Clock, ExternalLink } from 'lucide-react';
+import { Briefcase, ArrowRight } from 'lucide-react';
 
 export const FreelancerProposalsPage = () => {
   const [proposals, setProposals] = useState([]);
@@ -31,10 +31,15 @@ export const FreelancerProposalsPage = () => {
       sortable: true,
       render: (row) => (
         <div>
-          <Link to={`/projects/${row.project?.id}`} className="font-semibold text-white hover:text-purple-400">
+          <Link
+            to={`/projects/${row.project?.id}`}
+            className="font-semibold text-slate-900 dark:text-[#F8FAFC] hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+          >
             {row.project?.title}
           </Link>
-          <div className="text-xs text-gray-400">Client: {row.project?.client?.name}</div>
+          <div className="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">
+            Client: {row.project?.client?.name || 'Verified Client'}
+          </div>
         </div>
       ),
     },
@@ -43,15 +48,19 @@ export const FreelancerProposalsPage = () => {
       header: 'Your Bid',
       sortable: true,
       render: (row) => (
-        <span className="font-bold text-emerald-400">
-          ${Number(row.bidAmount).toLocaleString()}
+        <span className="font-bold text-slate-900 dark:text-emerald-400">
+          ₹{Number(row.bidAmount).toLocaleString('en-IN')}
         </span>
       ),
     },
     {
-      key: 'estimatedDurationDays',
+      key: 'estimatedDuration',
       header: 'Duration',
-      render: (row) => <span>~{row.estimatedDurationDays || 30} days</span>,
+      render: (row) => (
+        <span className="text-slate-600 dark:text-slate-400">
+          {row.estimatedDuration || `${row.estimatedDurationDays || 14} days`}
+        </span>
+      ),
     },
     {
       key: 'status',
@@ -64,7 +73,7 @@ export const FreelancerProposalsPage = () => {
       header: 'Submitted On',
       sortable: true,
       render: (row) => (
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-slate-500 dark:text-[#94A3B8]">
           {new Date(row.createdAt).toLocaleDateString()}
         </span>
       ),
@@ -72,17 +81,26 @@ export const FreelancerProposalsPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-blue-500/15">
         <div>
-          <h1 className="text-2xl font-extrabold text-white">My Submitted Proposals</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Track submitted bids and client invitations</p>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-500/30 mb-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+            <span>OPPORTUNITY PIPELINE</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
+            Submitted <span className="gradient-cyber-text">Proposals</span>
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">
+            Track your bids, client review status, and contract acceptances.
+          </p>
         </div>
         <Link
           to="/projects"
-          className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-lg shadow-purple-600/30"
+          className="btn-electric px-3.5 py-2 rounded-xl text-white text-xs font-semibold shadow-md flex items-center gap-1.5"
         >
-          Explore Projects
+          <Briefcase className="w-3.5 h-3.5" />
+          <span>Browse Marketplace</span>
         </Link>
       </div>
 
@@ -90,10 +108,11 @@ export const FreelancerProposalsPage = () => {
         columns={columns}
         data={proposals}
         loading={loading}
-        searchPlaceholder="Filter proposals..."
+        searchPlaceholder="Filter proposals by project title..."
         filterKey="status"
         filterOptions={[
           { label: 'Pending', value: 'PENDING' },
+          { label: 'Shortlisted', value: 'SHORTLISTED' },
           { label: 'Accepted', value: 'ACCEPTED' },
           { label: 'Rejected', value: 'REJECTED' },
         ]}
@@ -101,3 +120,5 @@ export const FreelancerProposalsPage = () => {
     </div>
   );
 };
+
+export default FreelancerProposalsPage;

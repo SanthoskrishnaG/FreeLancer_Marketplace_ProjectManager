@@ -135,4 +135,23 @@ export class TimeTrackingService {
       },
     };
   }
+
+  static async createManualEntry(userId, data) {
+    return this.addManualEntry(userId, data);
+  }
+
+  static async getFreelancerTimeSummary(userId) {
+    return this.getEntries(userId);
+  }
+
+  static async getContractTimeEntries(contractId, userId) {
+    return prisma.timeEntry.findMany({
+      where: { contractId },
+      orderBy: { startTime: 'desc' },
+      include: {
+        milestone: { select: { id: true, title: true } },
+        user: { select: { firstName: true, lastName: true, avatarUrl: true } },
+      },
+    });
+  }
 }

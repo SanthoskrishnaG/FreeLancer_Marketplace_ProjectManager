@@ -1,4 +1,5 @@
 import { prisma } from '../config/database.js';
+import { UserRepository } from '../repositories/user.repository.js';
 import { hashPassword, comparePassword } from '../utils/bcrypt.util.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.util.js';
 import { ApiError } from '../utils/api-error.js';
@@ -43,6 +44,7 @@ export class AuthService {
             ? {
                 create: {
                   title: data.title || null,
+                  hourlyRate: data.hourlyRate ? Number(data.hourlyRate) : 800,
                 },
               }
             : undefined,
@@ -69,7 +71,7 @@ export class AuthService {
     });
 
     const { passwordHash: _, ...safeUser } = user;
-    return { user: safeUser, accessToken, refreshToken };
+    return { user: safeUser, accessToken, token: accessToken, refreshToken };
   }
 
   static async login({ email, password }) {
@@ -107,7 +109,7 @@ export class AuthService {
     });
 
     const { passwordHash: _, ...safeUser } = user;
-    return { user: safeUser, accessToken, refreshToken };
+    return { user: safeUser, accessToken, token: accessToken, refreshToken };
   }
 
   static async refresh(refreshToken) {
@@ -153,6 +155,10 @@ export class AuthService {
     return { user: safeUser, accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
 
+  static async refreshToken(token) {
+    return this.refresh(token);
+  }
+
   static async logout(userId) {
     await prisma.user.update({
       where: { id: userId },
@@ -162,19 +168,7 @@ export class AuthService {
   }
 
   static async getMe(userId) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        clientProfile: true,
-        freelancerProfile: {
-          include: {
-            skills: {
-              include: { skill: true },
-            },
-          },
-        },
-      },
-    });
+    const user = await UserRepository.findByIdWithProfile(userId);
 
     if (!user) {
       throw ApiError.notFound('User account not found');

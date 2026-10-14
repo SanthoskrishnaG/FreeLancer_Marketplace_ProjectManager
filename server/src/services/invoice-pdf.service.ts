@@ -38,6 +38,10 @@ interface InvoicePdfData {
 }
 
 export class InvoicePdfService {
+  public static async generatePdfBuffer(data: any): Promise<Buffer> {
+    return this.generateInvoicePdf(data);
+  }
+
   public static async generateInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       try {

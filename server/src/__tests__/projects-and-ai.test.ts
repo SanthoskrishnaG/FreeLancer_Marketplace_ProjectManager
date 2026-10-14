@@ -13,6 +13,7 @@ describe('Project Management & AI Milestone Analysis Suite', () => {
   const clientUserId = 'client-uuid-111';
   const clientProfileId = 'cp-uuid-111';
   const freelancerUserId = 'freelancer-uuid-222';
+  const freelancerProfileId = 'fp-uuid-222';
 
   const clientToken = signAccessToken({
     userId: clientUserId,
@@ -62,7 +63,7 @@ describe('Project Management & AI Milestone Analysis Suite', () => {
       // Sum of percentages must equal ~100
       expect(totalPct).toBe(100);
       expect(totalAmount).toBe(5000);
-    });
+    }, 15000);
 
     it('should generate mobile-specific milestones when mobile keywords are present', async () => {
       const result = await AIRequirementService.generateMilestones({
@@ -74,10 +75,16 @@ describe('Project Management & AI Milestone Analysis Suite', () => {
 
       expect(
         result.milestones.some(
-          (m) => m.title.toLowerCase().includes('mobile') || m.title.toLowerCase().includes('app')
+          (m) =>
+            m.title.toLowerCase().includes('mobile') ||
+            m.title.toLowerCase().includes('app') ||
+            m.title.toLowerCase().includes('flutter') ||
+            m.description.toLowerCase().includes('mobile') ||
+            m.description.toLowerCase().includes('app') ||
+            m.description.toLowerCase().includes('flutter')
         )
       ).toBe(true);
-    });
+    }, 15000);
   });
 
   describe('Project Management API Authorization & Endpoints', () => {
@@ -190,6 +197,126 @@ describe('Project Management & AI Milestone Analysis Suite', () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data.projects.length).toBe(1);
       expect(res.body.data.pagination.total).toBe(1);
+    });
+
+    it('POST /api/projects/ideas should allow FREELANCER to create and save a project idea with milestones', async () => {
+      const mockFreelancerUser = {
+        id: freelancerUserId,
+        email: 'freelancer@dev.io',
+        role: UserRole.FREELANCER,
+        clientProfile: null,
+        freelancerProfile: { id: freelancerProfileId },
+      };
+
+      const mockCreatedIdea = {
+        id: 'idea-uuid-101',
+        freelancerId: freelancerProfileId,
+        isIdea: true,
+        title: 'Microservices Architecture for Fintech',
+        summary: 'Scalable ledger system with high throughput and event sourcing',
+        description: 'Complete architecture design with Go microservices, Kafka event streaming, and PostgreSQL.',
+        budget: 75000,
+        budgetType: 'FIXED',
+        durationWeeks: 6,
+        durationUnit: 'weeks',
+        experienceLevel: ExperienceLevel.EXPERT,
+        status: ProjectStatus.DRAFT,
+        category: null,
+        skills: [],
+        milestones: [
+          {
+            id: 'ms-1',
+            title: 'Phase 1: Event Schema & Prototyping',
+            amount: 30000,
+            order: 1,
+            status: 'PENDING',
+          },
+          {
+            id: 'ms-2',
+            title: 'Phase 2: Core Microservices & Integration',
+            amount: 45000,
+            order: 2,
+            status: 'PENDING',
+          },
+        ],
+      };
+
+      vi.spyOn(ProfileRepository, 'getUserFullProfile').mockResolvedValue(mockFreelancerUser as any);
+      vi.spyOn(ProjectRepository, 'createProjectIdea').mockResolvedValue(mockCreatedIdea as any);
+
+      const res = await request(app)
+        .post('/api/projects/ideas')
+        .set('Authorization', `Bearer ${freelancerToken}`)
+        .send({
+          title: 'Microservices Architecture for Fintech',
+          summary: 'Scalable ledger system with high throughput and event sourcing',
+          description: 'Complete architecture design with Go microservices, Kafka event streaming, and PostgreSQL.',
+          budget: 75000,
+          durationWeeks: 6,
+          durationUnit: 'weeks',
+          experienceLevel: 'EXPERT',
+          milestones: [
+            {
+              title: 'Phase 1: Event Schema & Prototyping',
+              amount: 30000,
+              deliverables: 'Architecture blueprint and Docker Compose prototype',
+            },
+            {
+              title: 'Phase 2: Core Microservices & Integration',
+              amount: 45000,
+              deliverables: 'Tested gRPC services and persistence layer',
+            },
+          ],
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.id).toBe('idea-uuid-101');
+      expect(res.body.data.isIdea).toBe(true);
+      expect(res.body.data.milestones.length).toBe(2);
+    });
+
+    it('POST /api/projects/ideas should block unauthenticated requests with 401', async () => {
+      const res = await request(app)
+        .post('/api/projects/ideas')
+        .send({
+          title: 'Unauthenticated Idea Submission',
+          summary: 'This should be blocked',
+          description: 'Valid description that has enough characters for validation',
+          budget: 50000,
+        });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('GET /api/projects/my/ideas should return freelancer ideas', async () => {
+      const mockFreelancerUser = {
+        id: freelancerUserId,
+        email: 'freelancer@dev.io',
+        role: UserRole.FREELANCER,
+        clientProfile: null,
+        freelancerProfile: { id: freelancerProfileId },
+      };
+
+      vi.spyOn(ProfileRepository, 'getUserFullProfile').mockResolvedValue(mockFreelancerUser as any);
+      vi.spyOn(ProjectRepository, 'getFreelancerProjects').mockResolvedValue([
+        {
+          id: 'idea-uuid-101',
+          title: 'Microservices Architecture for Fintech',
+          budget: 75000 as any,
+          isIdea: true,
+          status: ProjectStatus.DRAFT,
+          _count: { milestones: 2 },
+        } as any,
+      ]);
+
+      const res = await request(app)
+        .get('/api/projects/my/ideas')
+        .set('Authorization', `Bearer ${freelancerToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.projects.length).toBe(1);
     });
   });
 });

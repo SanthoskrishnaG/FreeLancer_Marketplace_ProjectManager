@@ -1,164 +1,218 @@
 import { prisma } from '../config/database.js';
+import { ProjectRepository } from '../repositories/project.repository.js';
+import { ProfileRepository } from '../repositories/profile.repository.js';
+import { FolderRepository } from '../repositories/folder.repository.js';
 import { ApiError } from '../utils/api-error.js';
 
 export class ProjectService {
   static async createProject(userId, data) {
-    const clientProfile = await prisma.clientProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!clientProfile) {
-      throw ApiError.forbidden('Only registered clients can create projects');
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user || !user.clientProfile) {
+      throw ApiError.forbidden('Only registered client accounts can create projects');
     }
 
-    const { milestones = [], skillIds = [], ...projectFields } = data;
-
-    return prisma.$transaction(async (tx) => {
-      const project = await tx.project.create({
-        data: {
-          ...projectFields,
-          clientId: clientProfile.id,
-          status: 'PUBLISHED',
-          skills: {
-            create: skillIds.map((skillId) => ({ skillId })),
-          },
-          milestones: {
-            create: milestones.map((m, idx) => ({
-              title: m.title,
-              description: m.description,
-              amount: m.amount,
-              order: m.order || idx + 1,
-              dueDate: m.dueDate ? new Date(m.dueDate) : null,
-              deliverables: m.deliverables || [],
-              acceptanceCriteria: m.acceptanceCriteria || [],
-              status: 'PENDING',
-            })),
-          },
-        },
-        include: {
-          milestones: true,
-          skills: { include: { skill: true } },
-          category: true,
-        },
-      });
-
-      return project;
-    });
+    return ProjectRepository.createProject(user.clientProfile.id, data);
   }
 
   static async getProjects(query = {}) {
-    const page = Math.max(parseInt(query.page || '1', 10), 1);
-    const limit = Math.max(parseInt(query.limit || '12', 10), 1);
-    const skip = (page - 1) * limit;
-
-    const where = {};
-
-    if (query.status) {
-      where.status = query.status;
-    } else {
-      where.status = { in: ['PUBLISHED', 'IN_PROGRESS'] };
-    }
-
-    if (query.categoryId) {
-      where.categoryId = query.categoryId;
-    }
-
-    if (query.experienceLevel) {
-      where.experienceLevel = query.experienceLevel;
-    }
-
-    if (query.minBudget || query.maxBudget) {
-      where.budget = {
-        gte: query.minBudget ? Number(query.minBudget) : undefined,
-        lte: query.maxBudget ? Number(query.maxBudget) : undefined,
-      };
-    }
-
-    if (query.search) {
-      where.OR = [
-        { title: { contains: query.search, mode: 'insensitive' } },
-        { description: { contains: query.search, mode: 'insensitive' } },
-      ];
-    }
-
-    let orderBy = { createdAt: 'desc' };
-    if (query.sortBy === 'budget_asc') orderBy = { budget: 'asc' };
-    if (query.sortBy === 'budget_desc') orderBy = { budget: 'desc' };
-    if (query.sortBy === 'deadline') orderBy = { deadline: 'asc' };
-
-    const [items, total] = await Promise.all([
-      prisma.project.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy,
-        include: {
-          client: {
-            include: {
-              user: { select: { firstName: true, lastName: true, avatarUrl: true, location: true } },
-            },
-          },
-          category: true,
-          skills: { include: { skill: true } },
-          _count: { select: { proposals: true, milestones: true } },
-        },
-      }),
-      prisma.project.count({ where }),
-    ]);
-
+    const result = await ProjectRepository.getPublicMarketplaceProjects(query);
     return {
-      items,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      ...result,
+      items: result.projects,
     };
   }
 
   static async getProjectById(id) {
-    const project = await prisma.project.findUnique({
-      where: { id },
-      include: {
-        client: {
-          include: {
-            user: {
-              select: { id: true, firstName: true, lastName: true, avatarUrl: true, location: true, createdAt: true },
-            },
-          },
-        },
-        category: true,
-        skills: { include: { skill: true } },
-        milestones: { orderBy: { order: 'asc' } },
-        _count: { select: { proposals: true } },
-      },
-    });
-
+    const project = await ProjectRepository.getProjectById(id);
     if (!project) {
       throw ApiError.notFound('Project not found');
     }
-
     return project;
   }
 
   static async getClientProjects(userId) {
-    const clientProfile = await prisma.clientProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!clientProfile) {
-      throw ApiError.forbidden('Client profile not found');
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user) {
+      throw ApiError.unauthorized('User not found');
     }
 
-    return prisma.project.findMany({
-      where: { clientId: clientProfile.id },
-      orderBy: { createdAt: 'desc' },
+    if (user.clientProfile) {
+      return ProjectRepository.getClientProjects(user.clientProfile.id);
+    }
+
+    if (user.freelancerProfile) {
+      return ProjectRepository.getFreelancerProjects(user.freelancerProfile.id);
+    }
+
+    throw ApiError.forbidden('Client or Freelancer profile not found');
+  }
+
+  static async createProjectIdea(userId, data) {
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user || !user.freelancerProfile) {
+      throw ApiError.forbidden('Only registered freelancer accounts can create project ideas');
+    }
+
+    if (data.categoryId) {
+      const category = await prisma.category.findUnique({ where: { id: data.categoryId } });
+      if (!category) {
+        throw ApiError.badRequest('Invalid category selected');
+      }
+    }
+
+    // Validate budget vs milestones
+    if (data.milestones && data.milestones.length > 0) {
+      const totalMilestones = data.milestones.reduce((sum, m) => sum + Number(m.amount || 0), 0);
+      const budgetNum = Number(data.budget);
+      if (budgetNum && totalMilestones > budgetNum) {
+        throw ApiError.badRequest(`Total milestone amount (₹${totalMilestones.toLocaleString('en-IN')}) cannot exceed project budget (₹${budgetNum.toLocaleString('en-IN')})`);
+      }
+    }
+
+    return ProjectRepository.createProjectIdea(user.freelancerProfile.id, data);
+  }
+
+  static async getFreelancerProjectIdeas(userId) {
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user || !user.freelancerProfile) {
+      throw ApiError.forbidden('Freelancer profile not found');
+    }
+
+    return ProjectRepository.getFreelancerProjects(user.freelancerProfile.id);
+  }
+
+  static async getCategories() {
+    return prisma.category.findMany({
+      orderBy: { name: 'asc' },
       include: {
-        category: true,
-        milestones: { orderBy: { order: 'asc' } },
-        _count: { select: { proposals: true, contracts: true } },
+        _count: { select: { projects: true, skills: true } },
       },
     });
   }
+
+  static async getSkills() {
+    return prisma.skill.findMany({
+      orderBy: { name: 'asc' },
+      include: {
+        category: { select: { id: true, name: true } },
+      },
+    });
+  }
+
+  static async updateProject(projectId, userId, data) {
+    const project = await ProjectRepository.getProjectById(projectId);
+    if (!project) throw ApiError.notFound('Project not found');
+
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user) throw ApiError.unauthorized('User not found');
+    const isOwner =
+      (user.clientProfile && project.clientId === user.clientProfile.id) ||
+      (user.freelancerProfile && project.freelancerId === user.freelancerProfile.id);
+    const isAdmin = user.role === 'ADMIN';
+
+    if (!isOwner && !isAdmin) {
+      throw ApiError.forbidden('You do not have permission to modify this project');
+    }
+
+    return ProjectRepository.updateProject(projectId, data);
+  }
+
+  static async deleteProject(projectId, userId) {
+    const project = await ProjectRepository.getProjectById(projectId);
+    if (!project) throw ApiError.notFound('Project not found');
+
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user) throw ApiError.unauthorized('User not found');
+    const isOwner =
+      (user.clientProfile && project.clientId === user.clientProfile.id) ||
+      (user.freelancerProfile && project.freelancerId === user.freelancerProfile.id);
+    const isAdmin = user.role === 'ADMIN';
+
+    if (!isOwner && !isAdmin) {
+      throw ApiError.forbidden('You do not have permission to delete this project');
+    }
+
+    return prisma.project.delete({ where: { id: projectId } });
+  }
+
+  // ----------------------------------------------------
+  // Project Folders & Records
+  // ----------------------------------------------------
+
+  static async getProjectFolders(projectId, userId) {
+    const project = await ProjectRepository.getProjectById(projectId);
+    if (!project) throw ApiError.notFound('Project not found');
+
+    return FolderRepository.getFoldersByProjectId(projectId);
+  }
+
+  static async createProjectFolder(projectId, userId, data) {
+    const project = await ProjectRepository.getProjectById(projectId);
+    if (!project) throw ApiError.notFound('Project not found');
+
+    if (!data.name || !data.name.trim()) {
+      throw ApiError.badRequest('Folder name is required');
+    }
+
+    const existing = await FolderRepository.findByName(projectId, data.name.trim());
+    if (existing) {
+      throw ApiError.conflict(`A folder named "${data.name.trim()}" already exists in this project`);
+    }
+
+    return FolderRepository.createFolder({
+      projectId,
+      name: data.name.trim(),
+      createdById: userId,
+    });
+  }
+
+  static async deleteProjectFolder(projectId, folderId, userId) {
+    const folder = await FolderRepository.getFolderById(folderId);
+    if (!folder || folder.projectId !== projectId) {
+      throw ApiError.notFound('Folder not found in this project');
+    }
+
+    const project = await ProjectRepository.getProjectById(projectId);
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    const isProjectOwner = user?.clientProfile && project?.clientId === user.clientProfile.id;
+    const isFolderCreator = folder.createdById === userId;
+    const isAdmin = user?.role === 'ADMIN';
+
+    if (!isProjectOwner && !isFolderCreator && !isAdmin) {
+      throw ApiError.forbidden('You do not have permission to delete this folder');
+    }
+
+    await FolderRepository.deleteFolder(folderId);
+    return { success: true, message: 'Folder deleted successfully' };
+  }
+
+  static async addProjectFile(projectId, folderId, userId, fileData) {
+    const folder = await FolderRepository.getFolderById(folderId);
+    if (!folder || folder.projectId !== projectId) {
+      throw ApiError.notFound('Folder not found in this project');
+    }
+
+    if (!fileData.name || !fileData.name.trim()) {
+      throw ApiError.badRequest('File name is required');
+    }
+
+    return FolderRepository.addFileToFolder({
+      folderId,
+      name: fileData.name.trim(),
+      url: fileData.url || '#',
+      size: fileData.size ? Number(fileData.size) : null,
+      mimeType: fileData.mimeType || 'application/octet-stream',
+    });
+  }
+
+  static async deleteProjectFile(projectId, folderId, fileId, userId) {
+    const file = await FolderRepository.getFileById(fileId);
+    if (!file || file.folderId !== folderId) {
+      throw ApiError.notFound('File not found in this folder');
+    }
+
+    await FolderRepository.deleteFile(fileId);
+    return { success: true, message: 'File deleted successfully' };
+  }
 }
+

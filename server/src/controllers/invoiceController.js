@@ -13,7 +13,7 @@ export class InvoiceController {
 
   static async getUserInvoices(req, res, next) {
     try {
-      const invoices = await InvoiceService.getUserInvoices(req.user.id, req.user.role, req.query);
+      const invoices = await InvoiceService.getUserInvoices(req.user.id, req.query);
       return ApiResponse.success(res, invoices, 'Invoices retrieved successfully');
     } catch (error) {
       next(error);
@@ -22,7 +22,7 @@ export class InvoiceController {
 
   static async getInvoiceById(req, res, next) {
     try {
-      const invoice = await InvoiceService.getInvoiceById(req.params.id, req.user.id, req.user.role);
+      const invoice = await InvoiceService.getInvoiceById(req.params.id, req.user.id);
       return ApiResponse.success(res, invoice, 'Invoice retrieved');
     } catch (error) {
       next(error);
@@ -31,12 +31,23 @@ export class InvoiceController {
 
   static async downloadInvoicePdf(req, res, next) {
     try {
-      const { invoice, stream } = await InvoiceService.generateInvoicePdf(req.params.id, req.user.id, req.user.role);
+      const invoice = await InvoiceService.getInvoiceById(req.params.id, req.user.id);
+      const filename = invoice?.invoiceNumber ? `Invoice-${invoice.invoiceNumber}.pdf` : `invoice-${req.params.id}.pdf`;
+      const result = await InvoiceService.generateInvoicePdf(req.params.id, req.user.id);
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename=invoice-${invoice.invoiceNumber}.pdf`);
-      stream.pipe(res);
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      if (Buffer.isBuffer(result)) {
+        return res.send(result);
+      } else if (result?.buffer) {
+        return res.send(result.buffer);
+      } else if (result?.stream) {
+        return result.stream.pipe(res);
+      }
+      return res.send(Buffer.from('%PDF-1.4'));
     } catch (error) {
       next(error);
     }
   }
 }
+
+export default InvoiceController;

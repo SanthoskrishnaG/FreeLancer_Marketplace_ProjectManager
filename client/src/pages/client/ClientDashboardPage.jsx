@@ -10,17 +10,15 @@ import { EmptyState } from '../../components/common/EmptyState.jsx';
 import { Modal } from '../../components/common/Modal.jsx';
 import {
   Briefcase,
-  Clock,
   FileCheck2,
   DollarSign,
-  AlertTriangle,
-  FolderPlus,
+  Plus,
   CheckCircle2,
-  Calendar,
-  Sparkles,
   ArrowRight,
-  Bell,
   RefreshCw,
+  ExternalLink,
+  MessageSquare,
+  AlertCircle,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -33,12 +31,10 @@ import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
   Legend,
 } from 'recharts';
 
-const PIE_COLORS = ['#4F46E5', '#38BDF8', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+const PIE_COLORS = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#06B6D4'];
 
 export const ClientDashboardPage = () => {
   const [data, setData] = useState(null);
@@ -68,13 +64,13 @@ export const ClientDashboardPage = () => {
   }, []);
 
   const handleApproveMilestone = async (milestoneId) => {
-    if (!window.confirm('Are you sure you want to approve this deliverable and release escrow funds?')) return;
+    if (!window.confirm('Are you sure you want to approve this milestone? This will release the allocated funds.')) return;
     setActionLoading(true);
     try {
       await milestoneApi.approveMilestone(milestoneId);
       await fetchDashboardData();
     } catch (err) {
-      alert(err.message || 'Approval failed');
+      alert(err.message || 'Milestone approval failed');
     } finally {
       setActionLoading(false);
     }
@@ -87,7 +83,7 @@ export const ClientDashboardPage = () => {
     try {
       await milestoneApi.requestRevision(activeMilestone.id, {
         feedback: revisionNotes,
-        requestedChanges: [revisionNotes],
+        revisionNotes,
       });
       setRevisionModalOpen(false);
       setRevisionNotes('');
@@ -107,207 +103,111 @@ export const ClientDashboardPage = () => {
   const { stats = {}, charts = {}, pendingMilestones = [], recentProjects = [] } = data || {};
 
   return (
-    <div className="space-y-8">
-      {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-blue-500/15">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Client Workspace
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-500/30 mb-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+            <span>CLIENT WORKSPACE</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
+            Client <span className="gradient-cyber-text">Mission Control</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Real-time project oversight, automated milestone verifications, and financial reporting.
+          <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">
+            Overview of active projects, milestone approvals, and contract expenditures.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => {
               setRefreshing(true);
               fetchDashboardData();
             }}
             disabled={refreshing}
-            className="p-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 transition-colors shadow-xs"
-            title="Refresh Data"
+            className="p-2 rounded-xl bg-white dark:bg-[#111726] hover:bg-slate-50 dark:hover:bg-blue-950/40 text-slate-600 dark:text-blue-400 border border-slate-200 dark:border-blue-500/25 transition-colors shadow-xs"
+            title="Refresh Dashboard"
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
           <Link
             to="/client/projects/create"
-            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-2"
+            className="btn-electric px-3.5 py-2 rounded-xl text-white text-xs font-semibold shadow-md flex items-center gap-1.5"
           >
-            <FolderPlus className="w-4 h-4" />
-            <span>Create AI Project</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Post New Project</span>
           </Link>
         </div>
       </div>
 
-      {/* 5 Key Operational Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      {/* 4 Practical Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <MetricCard
           title="Active Projects"
           value={stats.activeProjects || 0}
-          subtitle={`${stats.totalProjects || 0} total projects`}
+          subtitle={`${stats.totalProjects || 0} total created`}
           icon={Briefcase}
-          color="indigo"
-        />
-        <MetricCard
-          title="Total Spending"
-          value={`$${Number(stats.totalSpending || 0).toLocaleString()}`}
-          subtitle="Funded & released"
-          icon={DollarSign}
-          color="emerald"
+          color="neutral"
         />
         <MetricCard
           title="Active Contracts"
           value={stats.activeContracts || 0}
-          subtitle="In development"
+          subtitle="Currently in progress"
           icon={FileCheck2}
-          color="sky"
+          color="indigo"
+        />
+        <MetricCard
+          title="Total Spending"
+          value={`₹${Number(stats.totalSpending || 0).toLocaleString('en-IN')}`}
+          subtitle="Settled & released"
+          icon={DollarSign}
+          color="emerald"
         />
         <MetricCard
           title="Pending Approvals"
-          value={stats.pendingMilestoneApprovals || 0}
-          subtitle="Requires your review"
+          value={pendingMilestones.length || stats.pendingMilestones || 0}
+          subtitle={pendingMilestones.length > 0 ? 'Requires your review' : 'All up to date'}
           icon={CheckCircle2}
-          color="amber"
-        />
-        <MetricCard
-          title="Open Disputes"
-          value={stats.openDisputes || 0}
-          subtitle="Arbitration queue"
-          icon={AlertTriangle}
-          color={stats.openDisputes > 0 ? 'rose' : 'indigo'}
+          color={pendingMilestones.length > 0 ? 'amber' : 'neutral'}
         />
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Spending Over Time (Area Chart) */}
-        <ChartCard
-          title="Cumulative Spending Over Time"
-          subtitle="Historical monthly payments and milestone payouts"
-          className="lg:col-span-2"
-        >
-          <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={charts.spendingOverTime || []}>
-                <defs>
-                  <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#4F46E5" stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                <XAxis dataKey="month" stroke="#94A3B8" fontSize={11} tickLine={false} />
-                <YAxis
-                  stroke="#94A3B8"
-                  fontSize={11}
-                  tickLine={false}
-                  tickFormatter={(v) => `$${v}`}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '12px',
-                    fontSize: '12px',
-                    color: '#0F172A',
-                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.08)',
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="spending"
-                  stroke="#4F46E5"
-                  strokeWidth={2.5}
-                  fillOpacity={1}
-                  fill="url(#spendGrad)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+      {/* Action Queue: Pending Milestone Approvals */}
+      {pendingMilestones.length > 0 && (
+        <div className="bg-amber-50/70 dark:bg-amber-950/20 rounded-2xl border border-amber-200/80 dark:border-amber-500/30 p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+              <h2 className="text-xs font-semibold text-slate-900 dark:text-amber-300 uppercase tracking-wide">
+                Milestones Awaiting Approval ({pendingMilestones.length})
+              </h2>
+            </div>
+            <span className="text-[11px] text-amber-700 dark:text-amber-400 font-medium">Action Required</span>
           </div>
-        </ChartCard>
 
-        {/* Milestone Completion Breakdown (Pie Chart) */}
-        <ChartCard
-          title="Milestone Status"
-          subtitle="Work items distribution"
-        >
-          <div className="h-72 w-full flex items-center justify-center">
-            {charts.milestoneCompletion && charts.milestoneCompletion.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={charts.milestoneCompletion}
-                    dataKey="count"
-                    nameKey="status"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
-                    paddingAngle={3}
-                  >
-                    {charts.milestoneCompletion.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#FFFFFF',
-                      border: '1px solid #E2E8F0',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                      color: '#0F172A',
-                      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.08)',
-                    }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '11px', color: '#64748B' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <EmptyState title="No milestones yet" description="Milestones will reflect here once projects are active." />
-            )}
-          </div>
-        </ChartCard>
-      </div>
-
-      {/* Action Needed: Pending Milestone Approvals */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-xs">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-amber-500" />
-            <h3 className="text-base font-bold text-slate-900">Pending Milestone Approvals</h3>
-          </div>
-          <span className="text-xs text-slate-500 font-medium">
-            {pendingMilestones.length} item{pendingMilestones.length !== 1 ? 's' : ''} awaiting action
-          </span>
-        </div>
-
-        {pendingMilestones.length === 0 ? (
-          <div className="p-8 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-slate-200">
-            ✨ Great job! All milestone submissions are up-to-date and reviewed.
-          </div>
-        ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {pendingMilestones.map((m) => (
               <div
                 key={m.id}
-                className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className="p-4 rounded-xl bg-white dark:bg-[#111726] border border-amber-200/60 dark:border-amber-500/20 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4"
               >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2.5">
-                    <h4 className="text-sm font-bold text-slate-900">{m.title}</h4>
-                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                      ${Number(m.amount).toLocaleString()}
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-semibold text-slate-900 dark:text-white truncate">{m.title}</h3>
+                    <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/30">
+                      ₹{Number(m.amount).toLocaleString('en-IN')}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500">
-                    Contract: <span className="text-slate-800 font-medium">{m.contract?.title}</span> • Freelancer:{' '}
-                    <span className="text-slate-800 font-medium">{m.contract?.freelancer?.name}</span>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Contract: <span className="text-slate-700 dark:text-slate-200 font-medium">{m.contract?.title || m.projectTitle}</span>
+                    {m.contract?.freelancer?.name && (
+                      <> • Freelancer: <span className="text-slate-700 dark:text-slate-200 font-medium">{m.contract.freelancer.name}</span></>
+                    )}
                   </p>
                   {m.submissions?.[0]?.notes && (
-                    <p className="text-xs text-indigo-600 italic pt-1">
-                      Note: "{m.submissions[0].notes}"
+                    <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-[#0D1220] p-2.5 rounded-lg border border-slate-100 dark:border-blue-500/10 mt-1.5 italic">
+                      "{m.submissions[0].notes}"
                     </p>
                   )}
                   {m.submissions?.[0]?.fileUrl && (
@@ -315,9 +215,10 @@ export const ClientDashboardPage = () => {
                       href={m.submissions[0].fileUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-xs text-indigo-600 underline block pt-0.5 font-medium"
+                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium inline-flex items-center gap-1 pt-1"
                     >
-                      View Submitted Deliverable File
+                      <span>Inspect Deliverable Attachment</span>
+                      <ExternalLink className="w-3 h-3" />
                     </a>
                   )}
                 </div>
@@ -329,14 +230,14 @@ export const ClientDashboardPage = () => {
                       setRevisionModalOpen(true);
                     }}
                     disabled={actionLoading}
-                    className="px-3 py-1.5 rounded-xl border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 text-xs font-semibold transition-colors"
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-blue-500/25 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-blue-950/40 text-xs font-medium transition-colors"
                   >
                     Request Revision
                   </button>
                   <button
                     onClick={() => handleApproveMilestone(m.id)}
                     disabled={actionLoading}
-                    className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors shadow-xs flex items-center gap-1.5"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Approve & Release</span>
@@ -345,64 +246,196 @@ export const ClientDashboardPage = () => {
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Active Projects Table Overview */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-xs">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Briefcase className="w-5 h-5 text-indigo-600" />
-            <h3 className="text-base font-bold text-slate-900">Recent Projects Overview</h3>
+      {/* Projects Overview Table */}
+      <div className="cyber-card bg-white dark:bg-[#111726]/85 rounded-2xl border border-slate-200/90 dark:border-blue-500/20 shadow-sm overflow-hidden">
+        <div className="p-4 sm:px-5 border-b border-slate-200/80 dark:border-blue-500/10 flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Recent Projects</h2>
+            <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">Active assignments, proposals, and delivery status</p>
           </div>
-          <Link to="/client/projects" className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold flex items-center gap-1">
-            <span>View All</span>
+          <Link
+            to="/client/projects"
+            className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1"
+          >
+            <span>View all projects</span>
             <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
 
         {recentProjects.length === 0 ? (
-          <EmptyState
-            icon={Briefcase}
-            title="No projects created yet"
-            description="Post your first project using our AI-assisted scoping generator."
-            action={
-              <Link
-                to="/client/projects/create"
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-xs font-semibold text-white shadow-xs"
-              >
-                Create Project
-              </Link>
-            }
-          />
+          <div className="p-8">
+            <EmptyState
+              icon={Briefcase}
+              title="No projects published yet"
+              description="Post a project requirement to start receiving structured proposals from specialists."
+              action={
+                <Link
+                  to="/client/projects/create"
+                  className="btn-electric px-3.5 py-2 rounded-lg text-xs font-semibold text-white shadow-sm inline-block"
+                >
+                  Post First Project
+                </Link>
+              }
+            />
+          </div>
         ) : (
-          <div className="divide-y divide-slate-100">
-            {recentProjects.map((p) => (
-              <div key={p.id} className="py-3.5 flex items-center justify-between gap-4">
-                <div>
-                  <h4 className="text-sm font-semibold text-slate-900 hover:text-indigo-600 transition-colors">
-                    <Link to={`/projects/${p.id}`}>{p.title}</Link>
-                  </h4>
-                  <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                    <span className="font-semibold text-slate-700">${Number(p.budget).toLocaleString()}</span>
-                    <span>•</span>
-                    <span>{p._count?.proposals || 0} proposals</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant={p.status} />
-                  <Link
-                    to={`/client/projects/${p.id}/proposals`}
-                    className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold p-1"
-                    title="View Proposals"
-                  >
-                    Proposals
-                  </Link>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 dark:bg-[#0D1220] text-slate-600 dark:text-slate-400 font-medium border-b border-slate-200/80 dark:border-blue-500/15">
+                <tr>
+                  <th className="py-3 px-4 sm:px-5">Project Title</th>
+                  <th className="py-3 px-4">Budget</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Proposals</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-blue-500/10">
+                {recentProjects.map((p) => (
+                  <tr key={p.id} className="hover:bg-slate-50/60 dark:hover:bg-blue-950/20 transition-colors">
+                    <td className="py-3.5 px-4 sm:px-5">
+                      <Link
+                        to={`/projects/${p.id}`}
+                        className="font-medium text-slate-900 dark:text-[#F8FAFC] hover:text-blue-600 dark:hover:text-blue-400 transition-colors block"
+                      >
+                        {p.title}
+                      </Link>
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                        {p.category?.name || 'General'}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 font-bold text-slate-800 dark:text-emerald-400">
+                      ₹{Number(p.budget).toLocaleString('en-IN')}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <Badge variant={p.status} />
+                    </td>
+                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-400">
+                      <Link
+                        to={`/client/projects/${p.id}/proposals`}
+                        className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium"
+                      >
+                        <span>{p._count?.proposals || 0} proposals</span>
+                      </Link>
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          to={`/client/projects/${p.id}/proposals`}
+                          className="px-2.5 py-1 rounded-md border border-slate-200 dark:border-blue-500/30 text-slate-700 dark:text-blue-300 hover:bg-slate-50 dark:hover:bg-blue-950/40 text-xs font-medium"
+                        >
+                          Proposals
+                        </Link>
+                        <Link
+                          to={`/projects/${p.id}`}
+                          className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium"
+                        >
+                          Details
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
+      </div>
+
+      {/* Financial Analytics & Delivery Progress */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <ChartCard
+          title="Expenditures Over Time"
+          subtitle="Monthly payouts and milestone settlements"
+          className="lg:col-span-2"
+        >
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={charts.spendingOverTime || []}>
+                <defs>
+                  <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} vertical={false} />
+                <XAxis dataKey="month" stroke="#94A3B8" fontSize={11} tickLine={false} />
+                <YAxis
+                  stroke="#94A3B8"
+                  fontSize={11}
+                  tickLine={false}
+                  tickFormatter={(v) => `₹${v}`}
+                />
+                <Tooltip
+                  formatter={(val) => [`₹${Number(val).toLocaleString('en-IN')}`, 'Spending']}
+                  contentStyle={{
+                    backgroundColor: '#111726',
+                    border: '1px solid rgba(59, 130, 246, 0.3)',
+                    borderRadius: '10px',
+                    fontSize: '12px',
+                    color: '#F8FAFC',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="spending"
+                  stroke="#3B82F6"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#spendGrad)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </ChartCard>
+
+        <ChartCard
+          title="Milestone Delivery Status"
+          subtitle="Completion breakdown across all active contracts"
+        >
+          <div className="h-64 w-full flex items-center justify-center">
+            {charts.milestoneCompletion && charts.milestoneCompletion.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={charts.milestoneCompletion}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={75}
+                    paddingAngle={3}
+                    dataKey="count"
+                  >
+                    {charts.milestoneCompletion.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.fill || PIE_COLORS[index % PIE_COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#111726',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      borderRadius: '10px',
+                      fontSize: '12px',
+                      color: '#F8FAFC',
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '11px', color: '#94A3B8' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center text-xs text-slate-400">
+                No milestone activity logged yet.
+              </div>
+            )}
+          </div>
+        </ChartCard>
       </div>
 
       {/* Request Revision Modal */}
@@ -412,32 +445,32 @@ export const ClientDashboardPage = () => {
         title="Request Deliverable Revision"
       >
         <form onSubmit={handleRequestRevision} className="space-y-4">
-          <p className="text-xs text-slate-500">
-            Specify clearly what changes or improvements are required for milestone:{' '}
-            <span className="text-slate-900 font-bold">{activeMilestone?.title}</span>.
+          <p className="text-xs text-slate-600 dark:text-slate-300">
+            Explain to the freelancer what revisions or adjustments are required for:{' '}
+            <span className="text-slate-900 dark:text-white font-semibold">{activeMilestone?.title}</span>.
           </p>
           <textarea
             required
             rows={4}
             value={revisionNotes}
             onChange={(e) => setRevisionNotes(e.target.value)}
-            placeholder="e.g. Please update the API response formatting according to spec section 3.2..."
-            className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
+            placeholder="e.g. Please update the API endpoint error response handling as discussed in the spec..."
+            className="w-full p-3 bg-white dark:bg-[#0D1220] border border-slate-200 dark:border-blue-500/30 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 leading-relaxed"
           />
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex items-center justify-end gap-2.5 pt-2">
             <button
               type="button"
               onClick={() => setRevisionModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
+              className="px-3.5 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={actionLoading}
-              className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs"
+              className="btn-electric px-3.5 py-1.5 rounded-lg text-white text-xs font-semibold shadow-xs"
             >
-              Send Revision Request
+              Submit Feedback
             </button>
           </div>
         </form>

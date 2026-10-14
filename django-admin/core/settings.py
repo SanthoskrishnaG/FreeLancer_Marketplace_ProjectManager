@@ -63,12 +63,20 @@ DEFAULT_DATABASE_URL = os.environ.get(
     'postgresql://postgres:postgres@localhost:5432/freelancer_marketplace?schema=public'
 )
 
+raw_db_url = DEFAULT_DATABASE_URL
+# Strip prisma ?schema= query param if present for psycopg compatibility
+clean_db_url = raw_db_url.split('?schema=')[0] if '?schema=' in raw_db_url else raw_db_url.split('&schema=')[0]
+
+db_config = dj_database_url.config(
+    default=clean_db_url,
+    conn_max_age=600,
+    ssl_require=False
+)
+if 'OPTIONS' in db_config:
+    db_config['OPTIONS'].pop('schema', None)
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default=DEFAULT_DATABASE_URL,
-        conn_max_age=600,
-        ssl_require=False
-    )
+    'default': db_config
 }
 
 AUTH_PASSWORD_VALIDATORS = [

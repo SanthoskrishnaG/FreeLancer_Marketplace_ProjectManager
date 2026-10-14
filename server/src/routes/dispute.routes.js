@@ -9,5 +9,8 @@ router.use(authenticate);
 router.post('/', DisputeController.createDispute);
 router.get('/', DisputeController.getUserDisputes);
 router.get('/:id', DisputeController.getDisputeById);
+router.post('/:id/messages', DisputeController.addMessage);
+router.post('/:id/resolve', DisputeController.resolveDispute);
+router.post('/:id/reject', DisputeController.rejectDispute);
 
 export default router;

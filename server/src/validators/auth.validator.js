@@ -12,7 +12,7 @@ export const registerSchema = z
     }),
     companyName: z.string().optional(),
     title: z.string().optional(),
-    hourlyRate: z.number().optional(),
+    hourlyRate: z.union([z.number(), z.string().transform((v) => Number(v))]).optional(),
   })
   .refine(
     (data) => data.name || (data.firstName && data.lastName),

@@ -231,9 +231,18 @@ export class DashboardService {
       };
     });
 
+    const totalProjects = activeProjectsCount + draftProjectsCount + completedProjectsCount;
+
     return {
       profile: clientProfile,
+      stats: {
+        totalProjects,
+        activeContracts: activeContractsCount,
+        pendingProposals: pendingProposalsCount,
+        totalSpent: totalSpending,
+      },
       metrics: {
+        totalProjects,
         activeProjectsCount,
         draftProjectsCount,
         completedProjectsCount,
@@ -480,12 +489,19 @@ export class DashboardService {
 
     return {
       profile: freelancerProfile,
+      stats: {
+        totalProposals,
+        activeContracts: activeContractsCount,
+        completedContracts: completedContractsCount,
+        totalEarnings,
+      },
       metrics: {
+        totalProposals,
         activeProjectsCount: activeContractsCount,
         pendingProposalsCount,
         acceptedProposalsCount,
         earnings: totalEarnings,
-        completedProjectsCount,
+        completedProjectsCount: completedContractsCount,
         rating: Number(freelancerProfile.rating || 5.0),
         currentMilestonesCount: currentMilestones.length,
         upcomingDeadlinesCount: formattedDeadlines.length,

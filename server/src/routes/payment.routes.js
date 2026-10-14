@@ -6,6 +6,8 @@ const router = Router();
 
 router.use(authenticate);
 
+router.post('/checkout', PaymentController.checkout);
+router.get('/history', PaymentController.getUserPayments);
 router.post('/order', PaymentController.createPaymentOrder);
 router.post('/verify', PaymentController.verifyPayment);
 router.post('/escrow/:escrowId/release', PaymentController.releaseEscrow);

@@ -42,21 +42,31 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     const res = await authApi.login(credentials);
-    const { user: authUser, token: authToken } = res.data;
-    localStorage.setItem('token', authToken);
-    localStorage.setItem('user', JSON.stringify(authUser));
-    setUser(authUser);
-    setToken(authToken);
+    const authUser = res.data?.user;
+    const authToken = res.data?.token || res.data?.accessToken;
+    if (authToken) {
+      localStorage.setItem('token', authToken);
+      setToken(authToken);
+    }
+    if (authUser) {
+      localStorage.setItem('user', JSON.stringify(authUser));
+      setUser(authUser);
+    }
     return authUser;
   };
 
   const register = async (data) => {
     const res = await authApi.register(data);
-    const { user: authUser, token: authToken } = res.data;
-    localStorage.setItem('token', authToken);
-    localStorage.setItem('user', JSON.stringify(authUser));
-    setUser(authUser);
-    setToken(authToken);
+    const authUser = res.data?.user;
+    const authToken = res.data?.token || res.data?.accessToken;
+    if (authToken) {
+      localStorage.setItem('token', authToken);
+      setToken(authToken);
+    }
+    if (authUser) {
+      localStorage.setItem('user', JSON.stringify(authUser));
+      setUser(authUser);
+    }
     return authUser;
   };
 

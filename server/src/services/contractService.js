@@ -1,80 +1,64 @@
 import { prisma } from '../config/database.js';
+import { ContractRepository } from '../repositories/contract.repository.js';
+import { ProfileRepository } from '../repositories/profile.repository.js';
 import { ApiError } from '../utils/api-error.js';
 
 export class ContractService {
-  static async getContracts(userId, role) {
-    const where = {};
-    if (role === 'CLIENT') {
-      where.client = { userId };
-    } else if (role === 'FREELANCER') {
-      where.freelancerProfile = { userId };
-    } else if (role !== 'ADMIN') {
-      where.OR = [{ client: { userId } }, { freelancerProfile: { userId } }];
+  static async getUserContracts(userId, role, query = {}) {
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user) throw ApiError.unauthorized('Authentication required');
+
+    const filter = {
+      status: query.status,
+      page: query.page ? parseInt(query.page, 10) : 1,
+      limit: query.limit ? parseInt(query.limit, 10) : 10,
+    };
+
+    if (user.role === 'CLIENT' && user.clientProfile) {
+      filter.clientId = user.clientProfile.id;
+    } else if (user.role === 'FREELANCER' && user.freelancerProfile) {
+      filter.freelancerProfileId = user.freelancerProfile.id;
     }
 
-    return prisma.contract.findMany({
-      where,
-      orderBy: { updatedAt: 'desc' },
-      include: {
-        project: { select: { id: true, title: true, budget: true, status: true } },
-        client: {
-          include: {
-            user: { select: { firstName: true, lastName: true, email: true, avatarUrl: true } },
-          },
-        },
-        freelancerProfile: {
-          include: {
-            user: { select: { firstName: true, lastName: true, email: true, avatarUrl: true } },
-          },
-        },
-        milestones: { orderBy: { order: 'asc' } },
-      },
-    });
+    return ContractRepository.getUserContracts(filter);
   }
 
-  static async getContractById(userId, contractId) {
-    const contract = await prisma.contract.findUnique({
-      where: { id: contractId },
-      include: {
-        project: true,
-        client: {
-          include: {
-            user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } },
-          },
-        },
-        freelancerProfile: {
-          include: {
-            user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } },
-          },
-        },
-        milestones: {
-          orderBy: { order: 'asc' },
-          include: {
-            submissions: {
-              orderBy: { submittedAt: 'desc' },
-              include: { revisions: true },
-            },
-          },
-        },
-        invoices: true,
-        reviews: true,
-        disputes: true,
-      },
-    });
+  static async getContracts(userId, role, query = {}) {
+    return this.getUserContracts(userId, role, query);
+  }
 
-    if (!contract) {
-      throw ApiError.notFound('Contract not found');
-    }
+  static async getContractById(arg1, arg2) {
+    let contractId = typeof arg1 === 'string' && arg1.length === 36 ? arg1 : arg2;
+    let userId = contractId === arg1 ? arg2 : arg1;
 
-    // Access control
-    const isClient = contract.client.userId === userId;
-    const isFreelancer = contract.freelancerProfile.userId === userId;
+    const contract = await ContractRepository.findContractById(contractId);
+    if (!contract) throw ApiError.notFound('Contract not found');
 
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
-    if (!isClient && !isFreelancer && user?.role !== 'ADMIN') {
-      throw ApiError.forbidden('Unauthorized access to contract record');
+    if (userId) {
+      const user = await ProfileRepository.getUserFullProfile(userId);
+      if (user) {
+        const isClient = user.clientProfile && contract.clientId === user.clientProfile.id;
+        const isFreelancer = user.freelancerProfile && contract.freelancerProfileId === user.freelancerProfile.id;
+        const isAdmin = user.role === 'ADMIN';
+
+        if (!isClient && !isFreelancer && !isAdmin) {
+          throw ApiError.forbidden('You do not have permission to view this contract');
+        }
+      }
     }
 
     return contract;
   }
+
+  static async completeContract(contractId, userId) {
+    await this.getContractById(contractId, userId);
+    return ContractRepository.updateContractStatus(contractId, 'COMPLETED');
+  }
+
+  static async cancelContract(contractId, userId, reason) {
+    await this.getContractById(contractId, userId);
+    return ContractRepository.updateContractStatus(contractId, 'CANCELLED');
+  }
 }
+
+export default ContractService;

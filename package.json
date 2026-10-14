@@ -15,8 +15,10 @@
     "build": "npm run build --workspace=client",
     "test": "npm test --workspace=server",
     "seed": "npm run seed --workspace=server",
+    "db:seed": "npm run seed --workspace=server",
     "db:push": "npm run db:push --workspace=server",
-    "db:generate": "npm run db:generate --workspace=server"
+    "db:generate": "npm run db:generate --workspace=server",
+    "admin:django": "python django-admin/manage.py runserver 8000"
   },
   "keywords": [
     "freelancer",
@@ -31,5 +33,10 @@
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^10.0.5"
+  },
+  "dependencies": {
+    "@cloudinary/react": "^1.14.4",
+    "@cloudinary/url-gen": "^1.22.0",
+    "cloudinary": "^2.11.0"
   }
 }

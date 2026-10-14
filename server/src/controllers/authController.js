@@ -22,6 +22,9 @@ export class AuthController {
 
   static async logout(req, res, next) {
     try {
+      if (req.user?.id) {
+        await AuthService.logout(req.user.id);
+      }
       return ApiResponse.success(res, null, 'Logged out successfully');
     } catch (error) {
       next(error);
@@ -41,7 +44,7 @@ export class AuthController {
   static async getMe(req, res, next) {
     try {
       const user = await AuthService.getProfile(req.user.id);
-      return ApiResponse.success(res, user, 'Profile retrieved successfully');
+      return ApiResponse.success(res, { ...user, user }, 'Profile retrieved successfully');
     } catch (error) {
       next(error);
     }

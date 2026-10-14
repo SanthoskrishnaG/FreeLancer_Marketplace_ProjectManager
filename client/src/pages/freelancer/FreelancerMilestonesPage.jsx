@@ -4,7 +4,17 @@ import { milestoneApi } from '../../api/milestoneApi.js';
 import { DataTable } from '../../components/common/DataTable.jsx';
 import { Badge } from '../../components/common/Badge.jsx';
 import { Modal } from '../../components/common/Modal.jsx';
-import { CheckCircle2, Upload, DollarSign, Send } from 'lucide-react';
+import {
+  CheckCircle2,
+  Upload,
+  Send,
+  IndianRupee,
+  Layers,
+  Sparkles,
+  Link as LinkIcon,
+  FileCode2,
+  AlertCircle,
+} from 'lucide-react';
 
 export const FreelancerMilestonesPage = () => {
   const [milestones, setMilestones] = useState([]);
@@ -26,7 +36,12 @@ export const FreelancerMilestonesPage = () => {
         const all = [];
         res.data.contracts.forEach((c) => {
           c.milestones?.forEach((m) => {
-            all.push({ ...m, contractTitle: c.title, clientName: c.client?.name });
+            all.push({
+              ...m,
+              contractTitle: c.title,
+              clientName: c.client?.name || 'Client',
+              contractId: c.id,
+            });
           });
         });
         setMilestones(all);
@@ -52,7 +67,6 @@ export const FreelancerMilestonesPage = () => {
       if (fileUrl) formData.append('fileUrl', fileUrl);
 
       await milestoneApi.submitMilestoneWork(activeMilestone.id, formData);
-      alert('Work submitted successfully!');
       setModalOpen(false);
       setNotes('');
       setFileUrl('');
@@ -68,13 +82,16 @@ export const FreelancerMilestonesPage = () => {
   const columns = [
     {
       key: 'title',
-      header: 'Milestone Title',
+      header: 'Milestone & Contract',
       sortable: true,
       render: (row) => (
         <div>
-          <div className="font-semibold text-white">{row.title}</div>
-          <div className="text-xs text-gray-400">
-            Contract: {row.contractTitle} • Client: {row.clientName}
+          <div className="font-semibold text-slate-900 dark:text-[#F8FAFC] flex items-center gap-1.5">
+            <span>{row.title}</span>
+          </div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Contract: <span className="text-slate-700 dark:text-slate-300 font-medium">{row.contractTitle}</span> • Client:{' '}
+            <span className="text-slate-700 dark:text-slate-300 font-medium">{row.clientName}</span>
           </div>
         </div>
       ),
@@ -84,14 +101,14 @@ export const FreelancerMilestonesPage = () => {
       header: 'Escrow Amount',
       sortable: true,
       render: (row) => (
-        <span className="font-bold text-emerald-400">
-          ${Number(row.amount).toLocaleString()}
+        <span className="font-bold text-slate-900 dark:text-[#F8FAFC] font-mono">
+          ₹{Number(row.amount).toLocaleString('en-IN')}
         </span>
       ),
     },
     {
       key: 'status',
-      header: 'Status',
+      header: 'Deliverable Status',
       sortable: true,
       render: (row) => <Badge variant={row.status} />,
     },
@@ -106,13 +123,13 @@ export const FreelancerMilestonesPage = () => {
                 setActiveMilestone(row);
                 setModalOpen(true);
               }}
-              className="px-3 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-purple-600/30"
+              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] hover:opacity-95 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Submit Work</span>
             </button>
           ) : (
-            <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full w-fit">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Paid Out</span>
             </span>
@@ -123,11 +140,18 @@ export const FreelancerMilestonesPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-white">Milestones & Deliverables</h1>
-        <p className="text-xs text-gray-400 mt-0.5">
-          Submit completed deliverables, code artifacts, and review client revision feedback.
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="border-b border-slate-200/80 dark:border-slate-800/80 pb-5">
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-[#8B5CF6] dark:text-[#A78BFA] text-xs font-mono font-medium mb-2">
+          <Layers className="w-3.5 h-3.5" />
+          <span>DELIVERABLES & ROADMAP PHASES</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
+          Milestones & Deliverable Submissions
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Hand off completed code repositories, staging demonstrations, and deliverables for client verification and automated escrow releases.
         </p>
       </div>
 
@@ -135,7 +159,7 @@ export const FreelancerMilestonesPage = () => {
         columns={columns}
         data={milestones}
         loading={loading}
-        searchPlaceholder="Filter milestones..."
+        searchPlaceholder="Filter milestones by name or client..."
         filterKey="status"
         filterOptions={[
           { label: 'Pending', value: 'PENDING' },
@@ -145,53 +169,67 @@ export const FreelancerMilestonesPage = () => {
         ]}
       />
 
+      {/* Modal for Deliverable Submission */}
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title="Submit Deliverable for Client Approval"
+        title="Submit Deliverable for Client Verification"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <p className="text-xs text-gray-400">
-            Submitting for: <span className="text-white font-semibold">{activeMilestone?.title}</span> ($
-            {Number(activeMilestone?.amount || 0).toLocaleString()})
-          </p>
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-slate-800">
+            <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block mb-0.5">
+              Active Milestone
+            </span>
+            <div className="font-bold text-slate-900 dark:text-[#F8FAFC] text-sm">
+              {activeMilestone?.title}
+            </div>
+            <div className="text-xs text-[#3B82F6] dark:text-[#60A5FA] font-mono font-bold mt-1">
+              Escrow Value: ₹{Number(activeMilestone?.amount || 0).toLocaleString('en-IN')}
+            </div>
+          </div>
+
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1">
-              Deliverable Notes & Testing Instructions
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Deliverable Summary & Testing Notes
             </label>
             <textarea
               required
               rows={4}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Explain what was built, how to test, credentials, or API documentation..."
-              className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-purple-500"
+              placeholder="Explain features implemented, environment credentials, reproduction steps, or swagger docs..."
+              className="w-full p-3 bg-white dark:bg-[#0D1220] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
             />
           </div>
+
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1">
-              Artifact Link (PR, repo, deployed demo URL)
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Artifact Link (PR, Git Repository, Vercel/Fly.io preview)
             </label>
-            <input
-              type="url"
-              value={fileUrl}
-              onChange={(e) => setFileUrl(e.target.value)}
-              placeholder="https://github.com/org/repo or demo"
-              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-purple-500"
-            />
+            <div className="relative">
+              <LinkIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="url"
+                value={fileUrl}
+                onChange={(e) => setFileUrl(e.target.value)}
+                placeholder="https://github.com/..."
+                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#0D1220] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              />
+            </div>
           </div>
-          <div className="flex items-center justify-end gap-3 pt-2">
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2 text-xs text-gray-400 hover:text-white"
+              className="px-4 py-2 text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-lg shadow-purple-600/30 flex items-center gap-1.5"
+              className="btn-electric px-5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5"
             >
               {submitting ? (
                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -208,3 +246,5 @@ export const FreelancerMilestonesPage = () => {
     </div>
   );
 };
+
+export default FreelancerMilestonesPage;

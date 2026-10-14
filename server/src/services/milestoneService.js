@@ -1,15 +1,12 @@
+import { MilestoneRepository } from '../repositories/milestone.repository.js';
+import { ProfileRepository } from '../repositories/profile.repository.js';
 import { prisma } from '../config/database.js';
 import { ApiError } from '../utils/api-error.js';
 
 export class MilestoneService {
-  static async getMilestoneById(milestoneId, userId) {
-    const milestone = await prisma.milestone.findUnique({
-      where: { id: milestoneId },
-      include: {
-        submissions: { orderBy: { submittedAt: 'desc' } },
-        revisions: { orderBy: { createdAt: 'desc' } },
-      },
-    });
+  static async getMilestoneById(arg1, arg2) {
+    const milestoneId = arg1?.length === 36 ? arg1 : arg2;
+    const milestone = await MilestoneRepository.findMilestoneById(milestoneId);
     if (!milestone) throw ApiError.notFound('Milestone not found');
     return milestone;
   }
@@ -25,226 +22,145 @@ export class MilestoneService {
     });
   }
 
-  static async startMilestone(userId, milestoneId) {
-    const milestone = await prisma.milestone.findUnique({
-      where: { id: milestoneId },
-    });
+  static async startMilestone(arg1, arg2) {
+    let milestoneId, userId;
+    let milestone = await MilestoneRepository.findMilestoneById(arg1);
+    if (milestone) {
+      milestoneId = arg1;
+      userId = arg2;
+    } else {
+      milestone = await MilestoneRepository.findMilestoneById(arg2);
+      milestoneId = arg2;
+      userId = arg1;
+    }
+
     if (!milestone) throw ApiError.notFound('Milestone not found');
 
-    const updated = await prisma.milestone.update({
-      where: { id: milestoneId },
-      data: { status: 'IN_PROGRESS' },
-    });
-    return updated;
-  }
-  static async submitMilestone(userId, milestoneId, data) {
-    const milestone = await prisma.milestone.findUnique({
-      where: { id: milestoneId },
-      include: {
-        contract: {
-          include: {
-            freelancerProfile: true,
-            client: true,
-            project: true,
-          },
-        },
-      },
-    });
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user) throw ApiError.unauthorized('Authentication required');
 
-    if (!milestone || !milestone.contract) {
-      throw ApiError.notFound('Milestone or assigned contract not found');
+    const isFreelancer =
+      user.freelancerProfile &&
+      milestone.contract &&
+      milestone.contract.freelancerProfileId === user.freelancerProfile.id;
+
+    if (!isFreelancer && user.role !== 'ADMIN') {
+      throw ApiError.forbidden('Only the assigned freelancer can start this milestone');
     }
 
-    if (milestone.contract.freelancerProfile.userId !== userId) {
-      throw ApiError.forbidden('Only the assigned freelancer can submit work for this milestone');
+    if (milestone.status !== 'PENDING') {
+      throw ApiError.badRequest(`Cannot start milestone with status "${milestone.status}"`);
     }
 
-    return prisma.$transaction(async (tx) => {
-      // 1. Create a submission record (never overwrite old submissions)
-      const submission = await tx.milestoneSubmission.create({
-        data: {
-          milestoneId,
-          freelancerProfileId: milestone.contract.freelancerProfileId,
-          description: data.description,
-          notes: data.notes || null,
-          links: data.links || [],
-          submittedAt: new Date(),
-        },
-      });
-
-      // 2. Update milestone status to SUBMITTED
-      const updatedMilestone = await tx.milestone.update({
-        where: { id: milestoneId },
-        data: { status: 'SUBMITTED' },
-      });
-
-      // 3. Notify Client
-      await tx.notification.create({
-        data: {
-          userId: milestone.contract.client.userId,
-          title: 'Milestone Work Submitted',
-          message: `Freelancer submitted work for milestone "${milestone.title}". Please review deliverables.`,
-          type: 'MILESTONE',
-          link: `/client/contracts/${milestone.contractId}`,
-        },
-      });
-
-      return {
-        milestone: updatedMilestone,
-        submission,
-      };
-    });
+    return MilestoneRepository.startMilestone(milestoneId);
   }
 
-  /**
-   * Client requests revision on a submitted milestone
-   */
-  static async requestRevision(userId, milestoneId, data) {
-    const milestone = await prisma.milestone.findUnique({
-      where: { id: milestoneId },
-      include: {
-        contract: {
-          include: {
-            client: true,
-            freelancerProfile: true,
-          },
-        },
-        submissions: {
-          orderBy: { submittedAt: 'desc' },
-          take: 1,
-        },
-      },
-    });
-
-    if (!milestone || !milestone.contract) {
-      throw ApiError.notFound('Milestone not found');
+  static async submitMilestone(arg1, arg2, data = {}) {
+    let milestoneId, userId;
+    let milestone = await MilestoneRepository.findMilestoneById(arg1);
+    if (milestone) {
+      milestoneId = arg1;
+      userId = arg2;
+    } else {
+      milestone = await MilestoneRepository.findMilestoneById(arg2);
+      milestoneId = arg2;
+      userId = arg1;
     }
 
-    if (milestone.contract.client.userId !== userId) {
-      throw ApiError.forbidden('Only the client can request revisions');
+    if (!milestone) throw ApiError.notFound('Milestone not found');
+
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user || !user.freelancerProfile) {
+      throw ApiError.forbidden('Only freelancers can submit milestone deliverables');
     }
 
-    return prisma.$transaction(async (tx) => {
-      const latestSubmission = milestone.submissions[0];
+    const isAssigned =
+      milestone.contract && milestone.contract.freelancerProfileId === user.freelancerProfile.id;
 
-      const revision = await tx.revision.create({
-        data: {
-          milestoneId,
-          submissionId: latestSubmission?.id || null,
-          feedback: data.feedback,
-          requestedChanges: data.requestedChanges || [],
-          dueDate: data.dueDate ? new Date(data.dueDate) : null,
-        },
-      });
+    if (!isAssigned && user.role !== 'ADMIN') {
+      throw ApiError.forbidden('You are not the assigned freelancer for this contract milestone');
+    }
 
-      const updatedMilestone = await tx.milestone.update({
-        where: { id: milestoneId },
-        data: { status: 'REVISION_REQUESTED' },
-      });
+    if (
+      milestone.status !== 'IN_PROGRESS' &&
+      milestone.status !== 'REVISION_REQUESTED' &&
+      milestone.status !== 'PENDING' &&
+      milestone.status !== 'SUBMITTED'
+    ) {
+      throw ApiError.badRequest(
+        `Cannot submit deliverables for milestone in state "${milestone.status}"`
+      );
+    }
 
-      // Notify freelancer
-      await tx.notification.create({
-        data: {
-          userId: milestone.contract.freelancerProfile.userId,
-          title: 'Milestone Revision Requested',
-          message: `Client requested changes for "${milestone.title}". See feedback and update your work.`,
-          type: 'MILESTONE',
-          link: `/freelancer/contracts/${milestone.contractId}`,
-        },
-      });
-
-      return {
-        milestone: updatedMilestone,
-        revision,
-      };
+    return MilestoneRepository.createSubmission(milestoneId, user.freelancerProfile.id, {
+      description: data.description || data.notes || 'Deliverables submitted for milestone',
+      notes: data.notes || null,
+      links: data.links || [],
+      fileIds: data.fileIds || [],
     });
   }
 
-  /**
-   * Client approves milestone.
-   * If all milestones in contract are approved/completed, marks contract and project COMPLETED.
-   */
-  static async approveMilestone(userId, milestoneId) {
-    const milestone = await prisma.milestone.findUnique({
-      where: { id: milestoneId },
-      include: {
-        contract: {
-          include: {
-            client: true,
-            freelancerProfile: true,
-            project: true,
-            milestones: { orderBy: { order: 'asc' } },
-          },
-        },
-      },
-    });
-
-    if (!milestone || !milestone.contract) {
-      throw ApiError.notFound('Milestone not found');
+  static async approveMilestone(arg1, arg2) {
+    let milestoneId, userId;
+    let milestone = await MilestoneRepository.findMilestoneById(arg1);
+    if (milestone) {
+      milestoneId = arg1;
+      userId = arg2;
+    } else {
+      milestone = await MilestoneRepository.findMilestoneById(arg2);
+      milestoneId = arg2;
+      userId = arg1;
     }
 
-    if (milestone.contract.client.userId !== userId) {
-      throw ApiError.forbidden('Only the client can approve milestone deliverables');
+    if (!milestone) throw ApiError.notFound('Milestone not found');
+
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user || !user.clientProfile) {
+      throw ApiError.forbidden('Only clients can approve milestone deliverables');
     }
 
-    return prisma.$transaction(async (tx) => {
-      // 1. Mark this milestone as APPROVED and COMPLETED
-      const approvedMilestone = await tx.milestone.update({
-        where: { id: milestoneId },
-        data: { status: 'COMPLETED' },
-      });
+    const isClientOwner =
+      milestone.contract && milestone.contract.clientId === user.clientProfile.id;
 
-      // 2. Check if there is a next pending milestone to activate
-      const allMilestones = milestone.contract.milestones;
-      const currentIndex = allMilestones.findIndex((m) => m.id === milestoneId);
-      const nextMilestone = allMilestones[currentIndex + 1];
+    if (!isClientOwner && user.role !== 'ADMIN') {
+      throw ApiError.forbidden('Only the contract client can approve milestones');
+    }
 
-      if (nextMilestone && nextMilestone.status === 'PENDING') {
-        await tx.milestone.update({
-          where: { id: nextMilestone.id },
-          data: { status: 'IN_PROGRESS' },
-        });
-      }
+    return MilestoneRepository.approveMilestone(milestoneId);
+  }
 
-      // 3. Check if all contract milestones are now COMPLETED
-      const remainingUnfinished = await tx.milestone.count({
-        where: {
-          contractId: milestone.contractId,
-          status: { not: 'COMPLETED' },
-        },
-      });
+  static async requestRevision(arg1, arg2, data = {}) {
+    let milestoneId, userId;
+    let milestone = await MilestoneRepository.findMilestoneById(arg1);
+    if (milestone) {
+      milestoneId = arg1;
+      userId = arg2;
+    } else {
+      milestone = await MilestoneRepository.findMilestoneById(arg2);
+      milestoneId = arg2;
+      userId = arg1;
+    }
 
-      const allCompleted = remainingUnfinished === 0;
-      if (allCompleted) {
-        await tx.contract.update({
-          where: { id: milestone.contractId },
-          data: {
-            status: 'COMPLETED',
-            endDate: new Date(),
-          },
-        });
+    if (!milestone) throw ApiError.notFound('Milestone not found');
 
-        await tx.project.update({
-          where: { id: milestone.contract.projectId },
-          data: { status: 'COMPLETED' },
-        });
-      }
+    const user = await ProfileRepository.getUserFullProfile(userId);
+    if (!user || !user.clientProfile) {
+      throw ApiError.forbidden('Only clients can request revisions');
+    }
 
-      // 4. Notify freelancer
-      await tx.notification.create({
-        data: {
-          userId: milestone.contract.freelancerProfile.userId,
-          title: 'Milestone Approved! Funds Released',
-          message: `Milestone "${milestone.title}" has been approved by the client.`,
-          type: 'MILESTONE',
-          link: `/freelancer/contracts/${milestone.contractId}`,
-        },
-      });
+    const isClientOwner =
+      milestone.contract && milestone.contract.clientId === user.clientProfile.id;
 
-      return {
-        milestone: approvedMilestone,
-        contractCompleted: allCompleted,
-      };
+    if (!isClientOwner && user.role !== 'ADMIN') {
+      throw ApiError.forbidden('Only the contract client can request milestone revisions');
+    }
+
+    return MilestoneRepository.createRevisionRequest(milestoneId, {
+      feedback: data.feedback || data.revisionNotes || 'Revision requested for deliverables',
+      requestedChanges: data.requestedChanges || [data.feedback || 'Adjustments required'],
+      dueDate: data.dueDate,
     });
   }
 }
+
+export default MilestoneService;

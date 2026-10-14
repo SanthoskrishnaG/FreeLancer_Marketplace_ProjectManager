@@ -5,6 +5,7 @@ export const errorHandler = (err, _req, res, _next) => {
   if (err instanceof ApiError) {
     return res.status(err.statusCode).json({
       success: false,
+      message: err.message,
       error: {
         code: err.code || `HTTP_${err.statusCode}`,
         message: err.message,
@@ -14,11 +15,13 @@ export const errorHandler = (err, _req, res, _next) => {
   }
 
   if (err instanceof ZodError) {
+    const errorMsg = 'Validation failed: ' + err.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ');
     return res.status(400).json({
       success: false,
+      message: errorMsg,
       error: {
         code: 'VALIDATION_ERROR',
-        message: 'Input validation failed',
+        message: errorMsg,
         details: err.errors.map((e) => ({
           field: e.path.join('.'),
           message: e.message,
@@ -37,6 +40,7 @@ export const errorHandler = (err, _req, res, _next) => {
 
   return res.status(statusCode).json({
     success: false,
+    message,
     error: {
       code: 'INTERNAL_ERROR',
       message,

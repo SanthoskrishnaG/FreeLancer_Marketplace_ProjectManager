@@ -42,10 +42,8 @@ app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 // Health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({
-    status: 'success',
-    message: 'AI Freelancer Marketplace API is running smoothly',
-    timestamp: new Date().toISOString(),
-    env: env.NODE_ENV
+    success: true,
+    message: 'API is running'
   });
 });
 
@@ -66,4 +64,9 @@ app.use((req, res) => {
 // Centralized error handling
 app.use(errorHandler);
 
+export function createApp() {
+  return app;
+}
+
+export { app };
 export default app;

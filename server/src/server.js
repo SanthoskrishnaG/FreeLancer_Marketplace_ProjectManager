@@ -34,7 +34,16 @@ const socketManager = setupSocketIO(io);
 // Expose socketManager to app
 app.set('socketManager', socketManager);
 
-const PORT = env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use (EADDRINUSE). Please verify whether an existing instance of the server is running on port ${PORT}.`);
+  } else {
+    console.error('❌ Server startup error:', err.message);
+  }
+  process.exit(1);
+});
 
 server.listen(PORT, async () => {
   console.log(`🚀 Server running in ${env.NODE_ENV} mode on port ${PORT}`);

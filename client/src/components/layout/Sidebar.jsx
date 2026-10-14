@@ -34,6 +34,8 @@ export const Sidebar = () => {
 
   const freelancerLinks = [
     { to: '/freelancer/dashboard', label: 'Overview', icon: LayoutDashboard },
+    { to: '/freelancer/projects/create', label: 'Add Project Idea', icon: FolderPlus, highlight: true },
+    { to: '/freelancer/projects', label: 'My Project Ideas', icon: Briefcase },
     { to: '/freelancer/proposals', label: 'My Proposals', icon: FileText },
     { to: '/freelancer/contracts', label: 'Active Contracts', icon: FileCheck2 },
     { to: '/freelancer/milestones', label: 'Milestones & Work', icon: CheckCircle2 },
@@ -59,27 +61,28 @@ export const Sidebar = () => {
   else if (isClient) links = clientLinks;
   else if (isFreelancer) links = freelancerLinks;
 
-  const displayName = user?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'WorkPulse User');
+  const displayName =
+    user?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'WorkPulse User');
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 min-h-[calc(100vh-4rem)]">
+    <aside className="w-64 bg-white dark:bg-[#0D1220] border-r border-slate-200 dark:border-[#3B82F6]/15 flex flex-col shrink-0 min-h-[calc(100vh-4rem)] transition-colors duration-200">
       {/* User profile brief in sidebar */}
-      <div className="p-4 border-b border-slate-100">
+      <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-[#111726]/40">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-[#3B82F6]/15 border border-[#3B82F6]/30 text-[#3B82F6] dark:text-[#60A5FA] flex items-center justify-center font-bold text-xs shrink-0 shadow-[0_0_12px_rgba(59,130,246,0.2)]">
             {displayName.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <h4 className="text-xs font-bold text-slate-900 truncate">{displayName}</h4>
-            <Badge variant={user?.role} className="mt-0.5 text-[10px]" />
+            <h4 className="text-xs font-bold text-slate-900 dark:text-[#F8FAFC] truncate">{displayName}</h4>
+            <Badge variant={user?.role} className="mt-1 text-[10px]" />
           </div>
         </div>
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <div className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-          Navigation
+      <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+        <div className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          WorkSpace Menu
         </div>
         {links.map((link) => {
           const Icon = link.icon;
@@ -89,12 +92,12 @@ export const Sidebar = () => {
               to={link.to}
               end={link.end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs transition-all duration-150 ${
                   isActive
-                    ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-600 shadow-xs'
+                    ? 'bg-[#3B82F6]/15 text-[#3B82F6] dark:text-[#60A5FA] font-bold border border-[#3B82F6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]'
                     : link.highlight
-                    ? 'bg-gradient-to-r from-indigo-50/70 to-violet-50/70 text-indigo-700 border border-indigo-200/80 hover:bg-indigo-100/50'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'text-[#3B82F6] dark:text-[#93C5FD] bg-[#3B82F6]/5 hover:bg-[#3B82F6]/10 font-semibold border border-[#3B82F6]/20'
+                    : 'text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#161F36]/60 font-medium'
                 }`
               }
             >

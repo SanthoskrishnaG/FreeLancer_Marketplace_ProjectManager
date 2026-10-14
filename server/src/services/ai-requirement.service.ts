@@ -24,12 +24,38 @@ export type AIGeneratedMilestone = z.infer<typeof aiGeneratedMilestoneSchema> & 
 };
 
 export class AIRequirementService {
-  private static getOpenAIClient(): OpenAI | null {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey || apiKey === 'your_openai_api_key_here') {
-      return null;
+  private static getAIClient(): {
+    client: OpenAI;
+    model: string;
+    source: 'groq' | 'openai';
+    providerName: string;
+  } | null {
+    // 1. Groq API configuration (prioritized)
+    const groqKey = process.env.GROQ_API_KEY;
+    if (groqKey && groqKey !== 'your_groq_api_key_here') {
+      return {
+        client: new OpenAI({
+          apiKey: groqKey,
+          baseURL: 'https://api.groq.com/openai/v1',
+        }),
+        model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+        source: 'groq',
+        providerName: 'Groq LPU',
+      };
     }
-    return new OpenAI({ apiKey });
+
+    // 2. OpenAI API configuration (fallback)
+    const openAiKey = process.env.OPENAI_API_KEY;
+    if (openAiKey && openAiKey !== 'your_openai_api_key_here') {
+      return {
+        client: new OpenAI({ apiKey: openAiKey }),
+        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+        source: 'openai',
+        providerName: 'OpenAI',
+      };
+    }
+
+    return null;
   }
 
   public static async generateMilestones(params: {
@@ -39,7 +65,7 @@ export class AIRequirementService {
     totalBudget: number;
     customPrompt?: string;
   }): Promise<{
-    source: 'openai' | 'rule_based_fallback';
+    source: 'groq' | 'openai' | 'rule_based_fallback';
     summary: string;
     milestones: AIGeneratedMilestone[];
     metadata: {
@@ -59,11 +85,12 @@ Total Budget: $${totalBudget}
 Client Custom Focus: ${customPrompt || 'Standard milestone breakdown'}
 `.trim();
 
-    const openai = this.getOpenAIClient();
+    const aiConfig = this.getAIClient();
 
-    if (openai) {
+    if (aiConfig) {
+      const { client, model, source, providerName } = aiConfig;
       try {
-        logger.info(`🤖 Invoking OpenAI for requirement analysis on: "${projectTitle}"`);
+        logger.info(`🤖 Invoking ${providerName} (${model}) for requirement analysis on: "${projectTitle}"`);
 
         const prompt = `You are a Principal Software Project Manager and Agile Estimation Expert.
 Analyze the following project requirements and break them down into 4 to 7 structured, logical, sequential milestones.
@@ -89,16 +116,20 @@ Respond ONLY with valid JSON conforming to this exact structure:
 
 Ensure the sum of 'budgetPercentage' across all milestones equals exactly 100.`;
 
-        const response = await openai.chat.completions.create({
-          model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+        const response = await client.chat.completions.create({
+          model,
           messages: [{ role: 'user', content: prompt }],
           response_format: { type: 'json_object' },
           temperature: 0.2,
         });
 
-        const rawContent = response.choices[0]?.message?.content;
+        let rawContent = response.choices[0]?.message?.content;
         if (!rawContent) {
-          throw new Error('Empty response from OpenAI');
+          throw new Error(`Empty response from ${providerName}`);
+        }
+
+        if (rawContent.startsWith('```')) {
+          rawContent = rawContent.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
         }
 
         const parsedJson = JSON.parse(rawContent);
@@ -119,12 +150,26 @@ Ensure the sum of 'budgetPercentage' across all milestones equals exactly 100.`;
           };
         });
 
+        // Adjust any rounding discrepancy on the final milestone so percentage sums to 100 and amount matches budget exactly
+        const pctSum = calculatedMilestones.reduce((acc, m) => acc + m.budgetPercentage, 0);
+        const pctDiff = 100 - pctSum;
+        if (pctDiff !== 0 && calculatedMilestones.length > 0) {
+          calculatedMilestones[calculatedMilestones.length - 1].budgetPercentage += pctDiff;
+        }
+
+        const amountSum = calculatedMilestones.reduce((acc, m) => acc + m.amount, 0);
+        const amountDiff = totalBudget - amountSum;
+        if (amountDiff !== 0 && calculatedMilestones.length > 0) {
+          calculatedMilestones[calculatedMilestones.length - 1].amount =
+            Math.round((calculatedMilestones[calculatedMilestones.length - 1].amount + amountDiff) * 100) / 100;
+        }
+
         logger.info(
-          `✅ Successfully generated ${calculatedMilestones.length} milestones via OpenAI`
+          `✅ Successfully generated ${calculatedMilestones.length} milestones via ${providerName}`
         );
 
         return {
-          source: 'openai',
+          source,
           summary: validated.summary,
           milestones: calculatedMilestones,
           metadata: {
@@ -135,7 +180,7 @@ Ensure the sum of 'budgetPercentage' across all milestones equals exactly 100.`;
         };
       } catch (err) {
         logger.warn(
-          '⚠️ OpenAI milestone generation failed or timed out. Falling back to intelligent rule-based engine:',
+          `⚠️ ${providerName} milestone generation failed or timed out. Falling back to intelligent rule-based engine:`,
           err
         );
       }

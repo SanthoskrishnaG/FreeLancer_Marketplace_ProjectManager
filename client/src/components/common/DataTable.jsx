@@ -77,9 +77,9 @@ export const DataTable = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+    <div className="bg-white dark:bg-[#111726] rounded-2xl border border-slate-200 dark:border-[#3B82F6]/15 overflow-hidden shadow-sm dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] transition-all">
       {/* Table Toolbar */}
-      <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-50/50">
+      <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-50/70 dark:bg-[#0D1220]/80">
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -90,7 +90,7 @@ export const DataTable = ({
               setCurrentPage(1);
             }}
             placeholder={searchPlaceholder}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all"
+            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#111726] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-800 dark:text-[#F8FAFC] placeholder-slate-400 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-all"
           />
         </div>
 
@@ -103,7 +103,7 @@ export const DataTable = ({
                 setSelectedFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:border-indigo-600"
+              className="bg-white dark:bg-[#111726] border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-[#E2E8F0] font-medium focus:outline-none focus:border-[#3B82F6]"
             >
               <option value="ALL">All Statuses</option>
               {filterOptions.map((opt) => (
@@ -118,14 +118,14 @@ export const DataTable = ({
 
       {/* Table Element */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs text-slate-700">
-          <thead className="bg-slate-50 text-[11px] uppercase font-bold text-slate-600 border-b border-slate-200 tracking-wider">
+        <table className="w-full text-left text-xs text-slate-700 dark:text-[#CBD5E1]">
+          <thead className="bg-slate-50 dark:bg-[#0A0E18] text-[11px] uppercase font-bold text-slate-600 dark:text-[#94A3B8] border-b border-slate-200 dark:border-slate-800 tracking-wider">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
                   onClick={() => col.sortable && handleSort(col.key)}
-                  className={`py-3.5 px-4 ${col.sortable ? 'cursor-pointer select-none hover:text-slate-900' : ''} ${
+                  className={`py-3.5 px-4 ${col.sortable ? 'cursor-pointer select-none hover:text-slate-900 dark:hover:text-[#F8FAFC]' : ''} ${
                     col.className || ''
                   }`}
                 >
@@ -134,9 +134,9 @@ export const DataTable = ({
                     {col.sortable && sortKey === col.key && (
                       <span>
                         {sortOrder === 'asc' ? (
-                          <ChevronUp className="w-3.5 h-3.5 text-indigo-600" />
+                          <ChevronUp className="w-3.5 h-3.5 text-[#3B82F6]" />
                         ) : (
-                          <ChevronDown className="w-3.5 h-3.5 text-indigo-600" />
+                          <ChevronDown className="w-3.5 h-3.5 text-[#3B82F6]" />
                         )}
                       </span>
                     )}
@@ -145,13 +145,13 @@ export const DataTable = ({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
             {loading ? (
               [...Array(itemsPerPage)].map((_, idx) => (
                 <tr key={idx}>
                   {columns.map((col, cIdx) => (
                     <td key={cIdx} className="py-4 px-4">
-                      <Skeleton className="w-24 h-4 bg-slate-200" />
+                      <Skeleton className="w-24 h-4 bg-slate-200 dark:bg-slate-800" />
                     </td>
                   ))}
                 </tr>
@@ -167,7 +167,7 @@ export const DataTable = ({
                 <tr
                   key={row.id || idx}
                   onClick={() => onRowClick && onRowClick(row)}
-                  className={`transition-colors hover:bg-slate-50/80 ${
+                  className={`transition-colors hover:bg-slate-50/80 dark:hover:bg-[#161F36]/60 ${
                     onRowClick ? 'cursor-pointer' : ''
                   }`}
                 >
@@ -188,31 +188,31 @@ export const DataTable = ({
       </div>
 
       {/* Pagination Footer */}
-      {pagination && !loading && sortedData.length > 0 && (
-        <div className="p-3.5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 bg-slate-50/50">
+      {pagination && sortedData.length > itemsPerPage && (
+        <div className="p-3.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-[#94A3B8] bg-slate-50/50 dark:bg-[#0D1220]/60">
           <div>
-            Showing <span className="font-bold text-slate-800">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
-            <span className="font-bold text-slate-800">
+            Showing <span className="font-semibold text-slate-800 dark:text-[#F8FAFC]">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+            <span className="font-semibold text-slate-800 dark:text-[#F8FAFC]">
               {Math.min(currentPage * itemsPerPage, sortedData.length)}
             </span>{' '}
-            of <span className="font-bold text-slate-800">{sortedData.length}</span> entries
+            of <span className="font-semibold text-slate-800 dark:text-[#F8FAFC]">{sortedData.length}</span>
           </div>
 
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
-              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 font-semibold text-xs">
-              {currentPage} / {totalPages}
+            <span className="px-2 font-medium">
+              Page {currentPage} of {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

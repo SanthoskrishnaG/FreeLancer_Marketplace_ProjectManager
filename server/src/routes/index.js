@@ -30,6 +30,7 @@ router.use('/chat', chatRoutes);
 router.use('/conversations', chatRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/dashboards', dashboardRoutes);
+router.use('/dashboard', dashboardRoutes);
 router.use('/admin', adminRoutes);
 
 export default router;

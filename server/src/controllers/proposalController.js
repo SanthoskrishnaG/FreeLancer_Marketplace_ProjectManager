@@ -13,7 +13,7 @@ export class ProposalController {
 
   static async getProjectProposals(req, res, next) {
     try {
-      const proposals = await ProposalService.getProjectProposals(req.params.projectId, req.user.id);
+      const proposals = await ProposalService.getProjectProposals(req.user.id, req.params.projectId);
       return ApiResponse.success(res, proposals, 'Project proposals retrieved');
     } catch (error) {
       next(error);
@@ -51,6 +51,24 @@ export class ProposalController {
     try {
       const rejected = await ProposalService.rejectProposal(req.params.id, req.user.id);
       return ApiResponse.success(res, rejected, 'Proposal rejected');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async shortlistProposal(req, res, next) {
+    try {
+      const result = await ProposalService.shortlistProposal(req.params.id, req.user.id);
+      return ApiResponse.success(res, result, 'Proposal shortlisted');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async withdrawProposal(req, res, next) {
+    try {
+      const result = await ProposalService.withdrawProposal(req.params.id, req.user.id);
+      return ApiResponse.success(res, result, 'Proposal withdrawn');
     } catch (error) {
       next(error);
     }

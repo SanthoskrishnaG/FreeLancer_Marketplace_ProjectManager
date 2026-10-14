@@ -31,11 +31,15 @@ export class MilestoneController {
   static async submitMilestoneWork(req, res, next) {
     try {
       const fileUrl = req.file ? `/uploads/${req.file.filename}` : req.body.fileUrl;
-      const submission = await MilestoneService.submitMilestone(req.params.id, req.user.id, {
+      const links = req.body.links ? (Array.isArray(req.body.links) ? req.body.links : [req.body.links]) : [];
+      if (fileUrl) links.push(fileUrl);
+      const submission = await MilestoneService.submitMilestone(req.user.id, req.params.id, {
+        description: req.body.description || req.body.notes || 'Milestone work submitted',
         notes: req.body.notes,
+        links,
         fileUrl
       });
-      return ApiResponse.success(res, submission, 'Milestone work submitted');
+      return ApiResponse.created(res, submission, 'Milestone work submitted');
     } catch (error) {
       next(error);
     }
@@ -43,7 +47,7 @@ export class MilestoneController {
 
   static async approveMilestone(req, res, next) {
     try {
-      const approved = await MilestoneService.approveMilestone(req.params.id, req.user.id);
+      const approved = await MilestoneService.approveMilestone(req.user.id, req.params.id);
       return ApiResponse.success(res, approved, 'Milestone approved and payment released');
     } catch (error) {
       next(error);
@@ -52,8 +56,15 @@ export class MilestoneController {
 
   static async requestRevision(req, res, next) {
     try {
-      const revision = await MilestoneService.requestRevision(req.params.id, req.user.id, req.body.revisionNotes);
-      return ApiResponse.success(res, revision, 'Revision requested successfully');
+      const feedback = typeof req.body.revisionNotes === 'string'
+        ? req.body.revisionNotes
+        : (req.body.feedback || 'Revision requested');
+      const revision = await MilestoneService.requestRevision(req.user.id, req.params.id, {
+        feedback,
+        requestedChanges: req.body.requestedChanges || [feedback],
+        dueDate: req.body.dueDate
+      });
+      return ApiResponse.created(res, revision, 'Revision requested successfully');
     } catch (error) {
       next(error);
     }

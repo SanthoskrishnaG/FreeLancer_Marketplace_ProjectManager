@@ -71,12 +71,25 @@ export const setupSocketIO = (io) => {
           data: {
             conversationId,
             senderId: userId,
-            recipientId,
-            content,
-            fileUrl
+            content: content || '',
+            ...(fileUrl ? {
+              files: {
+                create: {
+                  originalName: 'attachment',
+                  storageKey: `chat/${Date.now()}`,
+                  url: fileUrl,
+                  mimeType: 'application/octet-stream',
+                  size: 0,
+                  uploaderId: userId,
+                  entityType: 'CHAT',
+                  entityId: conversationId
+                }
+              }
+            } : {})
           },
           include: {
-            sender: { select: { id: true, name: true, avatar: true } }
+            sender: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, role: true } },
+            files: true
           }
         });
 

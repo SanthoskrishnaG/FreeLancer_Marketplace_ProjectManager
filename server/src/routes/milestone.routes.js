@@ -7,6 +7,13 @@ import { submitMilestoneSchema, requestRevisionSchema } from '../validators/mile
 
 const router = Router();
 
+const optionalUpload = (req, res, next) => {
+  if (req.headers['content-type']?.includes('multipart/form-data')) {
+    return upload.single('file')(req, res, next);
+  }
+  next();
+};
+
 router.use(authenticate);
 
 router.get('/contract/:contractId', MilestoneController.getMilestonesByContract);
@@ -16,7 +23,7 @@ router.post('/:id/start', authorize(['FREELANCER']), MilestoneController.startMi
 router.post(
   '/:id/submit',
   authorize(['FREELANCER']),
-  upload.single('file'),
+  optionalUpload,
   validate(submitMilestoneSchema),
   MilestoneController.submitMilestoneWork
 );
@@ -29,6 +36,13 @@ router.post(
 
 router.post(
   '/:id/revision',
+  authorize(['CLIENT']),
+  validate(requestRevisionSchema),
+  MilestoneController.requestRevision
+);
+
+router.post(
+  '/:id/request-revision',
   authorize(['CLIENT']),
   validate(requestRevisionSchema),
   MilestoneController.requestRevision

@@ -4,10 +4,11 @@ import { ApiError } from '../utils/api-error.js';
 export class AdminService {
   static async logAudit(adminId, action, entity, entityId, details, ipAddress = null) {
     try {
+      const validAction = ['CREATE', 'UPDATE', 'STATUS_CHANGE'].includes(action) ? action : 'UPDATE';
       await prisma.auditLog.create({
         data: {
           userId: adminId,
-          action,
+          action: validAction,
           entity,
           entityId,
           details: typeof details === 'string' ? details : JSON.stringify(details),
@@ -31,8 +32,8 @@ export class AdminService {
       totalProposals,
       openDisputes,
       paymentsSummary,
-      recentUsers,
-      recentProjects,
+      recentUsersRaw,
+      recentProjectsRaw,
       unverifiedFreelancers
     ] = await Promise.all([
       prisma.user.count(),
@@ -45,13 +46,13 @@ export class AdminService {
       prisma.proposal.count(),
       prisma.dispute.count({ where: { status: { in: ['OPEN', 'UNDER_REVIEW'] } } }),
       prisma.payment.aggregate({
-        _sum: { amount: true, fee: true },
-        where: { status: 'COMPLETED' }
+        _sum: { amount: true },
+        where: { status: 'SUCCESS' }
       }),
       prisma.user.findMany({
         take: 5,
         orderBy: { createdAt: 'desc' },
-        select: { id: true, name: true, email: true, role: true, status: true, createdAt: true }
+        select: { id: true, firstName: true, lastName: true, email: true, role: true, isVerified: true, avatarUrl: true, createdAt: true }
       }),
       prisma.project.findMany({
         take: 5,
@@ -62,11 +63,38 @@ export class AdminService {
           budget: true,
           status: true,
           createdAt: true,
-          client: { select: { name: true, email: true } }
+          client: {
+            select: {
+              companyName: true,
+              user: { select: { firstName: true, lastName: true, email: true } }
+            }
+          }
         }
       }),
-      prisma.freelancerProfile.count({ where: { isVerified: false } })
+      prisma.user.count({ where: { role: 'FREELANCER', isVerified: false } })
     ]);
+
+    const recentUsers = recentUsersRaw.map(u => ({
+      id: u.id,
+      name: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email,
+      email: u.email,
+      role: u.role,
+      status: u.isVerified ? 'VERIFIED' : 'ACTIVE',
+      avatar: u.avatarUrl,
+      createdAt: u.createdAt
+    }));
+
+    const recentProjects = recentProjectsRaw.map(p => ({
+      id: p.id,
+      title: p.title,
+      budget: p.budget,
+      status: p.status,
+      createdAt: p.createdAt,
+      client: {
+        name: p.client?.companyName || (`${p.client?.user?.firstName || ''} ${p.client?.user?.lastName || ''}`.trim() || 'Client'),
+        email: p.client?.user?.email || ''
+      }
+    }));
 
     // Monthly GMV / revenue for past 6 months
     const sixMonthsAgo = new Date();
@@ -75,10 +103,10 @@ export class AdminService {
 
     const payments = await prisma.payment.findMany({
       where: {
-        status: 'COMPLETED',
+        status: 'SUCCESS',
         createdAt: { gte: sixMonthsAgo }
       },
-      select: { amount: true, fee: true, createdAt: true }
+      select: { amount: true, createdAt: true }
     });
 
     const monthlyDataMap = {};
@@ -92,8 +120,9 @@ export class AdminService {
     payments.forEach(p => {
       const key = new Date(p.createdAt).toLocaleString('default', { month: 'short', year: 'numeric' });
       if (monthlyDataMap[key]) {
-        monthlyDataMap[key].gmv += Number(p.amount);
-        monthlyDataMap[key].revenue += Number(p.fee || 0);
+        const amt = Number(p.amount);
+        monthlyDataMap[key].gmv += amt;
+        monthlyDataMap[key].revenue += amt * 0.1;
         monthlyDataMap[key].transactions += 1;
       }
     });
@@ -110,6 +139,9 @@ export class AdminService {
       _count: { id: true }
     });
 
+    const totalGMV = Number(paymentsSummary._sum.amount || 0);
+    const platformRevenue = totalGMV * 0.1;
+
     return {
       stats: {
         totalUsers,
@@ -122,8 +154,8 @@ export class AdminService {
         totalProposals,
         openDisputes,
         unverifiedFreelancers,
-        totalGMV: Number(paymentsSummary._sum.amount || 0),
-        platformRevenue: Number(paymentsSummary._sum.fee || (Number(paymentsSummary._sum.amount || 0) * 0.1))
+        totalGMV,
+        platformRevenue
       },
       charts: {
         financialTrends: Object.values(monthlyDataMap),
@@ -141,15 +173,19 @@ export class AdminService {
 
     const where = {};
     if (role && role !== 'ALL') where.role = role;
-    if (status && status !== 'ALL') where.status = status;
+    if (status && status !== 'ALL') {
+      if (status === 'VERIFIED') where.isVerified = true;
+      if (status === 'UNVERIFIED') where.isVerified = false;
+    }
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } }
       ];
     }
 
-    const [total, users] = await Promise.all([
+    const [total, rawUsers] = await Promise.all([
       prisma.user.count({ where }),
       prisma.user.findMany({
         where,
@@ -158,24 +194,33 @@ export class AdminService {
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
           email: true,
           role: true,
-          status: true,
-          avatar: true,
+          isVerified: true,
+          avatarUrl: true,
           createdAt: true,
-          freelancerProfile: { select: { id: true, isVerified: true, title: true, rating: true } },
-          _count: {
-            select: {
-              clientProjects: true,
-              proposals: true,
-              clientContracts: true,
-              freelancerContracts: true
-            }
-          }
+          freelancerProfile: { select: { id: true, title: true, rating: true } },
+          clientProfile: { select: { id: true, companyName: true } }
         }
       })
     ]);
+
+    const users = rawUsers.map(u => ({
+      id: u.id,
+      name: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      email: u.email,
+      role: u.role,
+      status: u.isVerified ? 'VERIFIED' : 'ACTIVE',
+      isVerified: u.isVerified,
+      avatar: u.avatarUrl,
+      createdAt: u.createdAt,
+      freelancerProfile: u.freelancerProfile,
+      clientProfile: u.clientProfile
+    }));
 
     return {
       users,
@@ -193,18 +238,23 @@ export class AdminService {
     if (!user) throw ApiError.notFound('User not found');
     if (user.role === 'ADMIN') throw ApiError.badRequest('Cannot change status of an admin');
 
+    const isVerified = status === 'VERIFIED' || status === true;
     const updated = await prisma.user.update({
       where: { id: userId },
-      data: { status }
+      data: { isVerified }
     });
 
-    await this.logAudit(adminId, 'UPDATE_USER_STATUS', 'User', userId, {
-      previousStatus: user.status,
-      newStatus: status,
+    await this.logAudit(adminId, 'STATUS_CHANGE', 'User', userId, {
+      previousStatus: user.isVerified ? 'VERIFIED' : 'ACTIVE',
+      newStatus: isVerified ? 'VERIFIED' : 'ACTIVE',
       reason
     });
 
-    return updated;
+    return {
+      ...updated,
+      name: `${updated.firstName || ''} ${updated.lastName || ''}`.trim(),
+      status: updated.isVerified ? 'VERIFIED' : 'ACTIVE'
+    };
   }
 
   static async getFreelancers(query = {}) {
@@ -213,17 +263,19 @@ export class AdminService {
 
     const where = {};
     if (isVerified !== undefined && isVerified !== 'ALL') {
-      where.isVerified = isVerified === 'true' || isVerified === true;
+      const boolVerified = isVerified === 'true' || isVerified === true;
+      where.user = { isVerified: boolVerified };
     }
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
-        { user: { name: { contains: search, mode: 'insensitive' } } },
+        { user: { firstName: { contains: search, mode: 'insensitive' } } },
+        { user: { lastName: { contains: search, mode: 'insensitive' } } },
         { user: { email: { contains: search, mode: 'insensitive' } } }
       ];
     }
 
-    const [total, profiles] = await Promise.all([
+    const [total, rawProfiles] = await Promise.all([
       prisma.freelancerProfile.count({ where }),
       prisma.freelancerProfile.findMany({
         where,
@@ -231,11 +283,22 @@ export class AdminService {
         take: Number(limit),
         orderBy: { createdAt: 'desc' },
         include: {
-          user: { select: { id: true, name: true, email: true, status: true, avatar: true, createdAt: true } },
+          user: { select: { id: true, firstName: true, lastName: true, email: true, isVerified: true, avatarUrl: true, createdAt: true } },
           skills: { include: { skill: true } }
         }
       })
     ]);
+
+    const profiles = rawProfiles.map(p => ({
+      ...p,
+      isVerified: p.user?.isVerified || false,
+      user: {
+        ...p.user,
+        name: `${p.user?.firstName || ''} ${p.user?.lastName || ''}`.trim() || p.user?.email,
+        avatar: p.user?.avatarUrl,
+        status: p.user?.isVerified ? 'VERIFIED' : 'ACTIVE'
+      }
+    }));
 
     return {
       profiles,
@@ -249,23 +312,34 @@ export class AdminService {
   }
 
   static async verifyFreelancer(freelancerProfileId, isVerified, adminId) {
-    const profile = await prisma.freelancerProfile.findUnique({
+    let profile = await prisma.freelancerProfile.findUnique({
       where: { id: freelancerProfileId },
       include: { user: true }
     });
-    if (!profile) throw ApiError.notFound('Freelancer profile not found');
 
-    const updated = await prisma.freelancerProfile.update({
-      where: { id: freelancerProfileId },
+    let targetUserId = profile?.userId;
+    if (!profile) {
+      // Maybe user ID was passed
+      const user = await prisma.user.findUnique({ where: { id: freelancerProfileId } });
+      if (!user) throw ApiError.notFound('Freelancer profile or user not found');
+      targetUserId = user.id;
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: targetUserId },
       data: { isVerified: Boolean(isVerified) }
     });
 
-    await this.logAudit(adminId, 'VERIFY_FREELANCER', 'FreelancerProfile', freelancerProfileId, {
+    await this.logAudit(adminId, 'UPDATE', 'User', targetUserId, {
       isVerified: Boolean(isVerified),
-      freelancerName: profile.user?.name
+      freelancerName: `${updatedUser.firstName || ''} ${updatedUser.lastName || ''}`.trim()
     });
 
-    return updated;
+    return {
+      ...profile,
+      isVerified: updatedUser.isVerified,
+      user: updatedUser
+    };
   }
 
   static async getProjects(query = {}) {
@@ -282,7 +356,7 @@ export class AdminService {
       ];
     }
 
-    const [total, projects] = await Promise.all([
+    const [total, rawProjects] = await Promise.all([
       prisma.project.count({ where }),
       prisma.project.findMany({
         where,
@@ -290,12 +364,27 @@ export class AdminService {
         take: Number(limit),
         orderBy: { createdAt: 'desc' },
         include: {
-          client: { select: { id: true, name: true, email: true } },
+          client: {
+            select: {
+              id: true,
+              companyName: true,
+              user: { select: { firstName: true, lastName: true, email: true } }
+            }
+          },
           category: { select: { id: true, name: true } },
           _count: { select: { proposals: true, contracts: true } }
         }
       })
     ]);
+
+    const projects = rawProjects.map(p => ({
+      ...p,
+      client: {
+        id: p.client?.id,
+        name: p.client?.companyName || (`${p.client?.user?.firstName || ''} ${p.client?.user?.lastName || ''}`.trim() || 'Client'),
+        email: p.client?.user?.email || ''
+      }
+    }));
 
     return {
       projects,
@@ -317,7 +406,7 @@ export class AdminService {
       data: { status }
     });
 
-    await this.logAudit(adminId, 'UPDATE_PROJECT_STATUS', 'Project', projectId, {
+    await this.logAudit(adminId, 'STATUS_CHANGE', 'Project', projectId, {
       oldStatus: project.status,
       newStatus: status
     });
@@ -333,13 +422,15 @@ export class AdminService {
     if (status && status !== 'ALL') where.status = status;
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { client: { name: { contains: search, mode: 'insensitive' } } },
-        { freelancer: { name: { contains: search, mode: 'insensitive' } } }
+        { project: { title: { contains: search, mode: 'insensitive' } } },
+        { client: { user: { firstName: { contains: search, mode: 'insensitive' } } } },
+        { client: { user: { lastName: { contains: search, mode: 'insensitive' } } } },
+        { freelancerProfile: { user: { firstName: { contains: search, mode: 'insensitive' } } } },
+        { freelancerProfile: { user: { lastName: { contains: search, mode: 'insensitive' } } } }
       ];
     }
 
-    const [total, contracts] = await Promise.all([
+    const [total, rawContracts] = await Promise.all([
       prisma.contract.count({ where }),
       prisma.contract.findMany({
         where,
@@ -347,13 +438,36 @@ export class AdminService {
         take: Number(limit),
         orderBy: { createdAt: 'desc' },
         include: {
-          client: { select: { id: true, name: true, email: true } },
-          freelancer: { select: { id: true, name: true, email: true } },
+          client: {
+            include: {
+              user: { select: { id: true, firstName: true, lastName: true, email: true } }
+            }
+          },
+          freelancerProfile: {
+            include: {
+              user: { select: { id: true, firstName: true, lastName: true, email: true } }
+            }
+          },
           project: { select: { id: true, title: true } },
           milestones: { select: { id: true, status: true, amount: true } }
         }
       })
     ]);
+
+    const contracts = rawContracts.map(c => ({
+      ...c,
+      title: c.project?.title || 'Contract',
+      client: {
+        id: c.client?.id,
+        name: c.client?.companyName || (`${c.client?.user?.firstName || ''} ${c.client?.user?.lastName || ''}`.trim() || 'Client'),
+        email: c.client?.user?.email || ''
+      },
+      freelancer: {
+        id: c.freelancerProfile?.id,
+        name: `${c.freelancerProfile?.user?.firstName || ''} ${c.freelancerProfile?.user?.lastName || ''}`.trim() || 'Freelancer',
+        email: c.freelancerProfile?.user?.email || ''
+      }
+    }));
 
     return {
       contracts,
@@ -373,7 +487,7 @@ export class AdminService {
     const where = {};
     if (status && status !== 'ALL') where.status = status;
 
-    const [total, disputes] = await Promise.all([
+    const [total, rawDisputes] = await Promise.all([
       prisma.dispute.count({ where }),
       prisma.dispute.findMany({
         where,
@@ -383,15 +497,46 @@ export class AdminService {
         include: {
           contract: {
             include: {
-              client: { select: { id: true, name: true, email: true } },
-              freelancer: { select: { id: true, name: true, email: true } },
+              client: {
+                include: {
+                  user: { select: { id: true, firstName: true, lastName: true, email: true } }
+                }
+              },
+              freelancerProfile: {
+                include: {
+                  user: { select: { id: true, firstName: true, lastName: true, email: true } }
+                }
+              },
               project: { select: { id: true, title: true } }
             }
           },
-          openedBy: { select: { id: true, name: true, email: true } }
+          initiator: { select: { id: true, firstName: true, lastName: true, email: true } }
         }
       })
     ]);
+
+    const disputes = rawDisputes.map(d => ({
+      ...d,
+      contract: {
+        ...d.contract,
+        title: d.contract?.project?.title || 'Contract',
+        client: {
+          id: d.contract?.client?.id,
+          name: d.contract?.client?.companyName || (`${d.contract?.client?.user?.firstName || ''} ${d.contract?.client?.user?.lastName || ''}`.trim() || 'Client'),
+          email: d.contract?.client?.user?.email || ''
+        },
+        freelancer: {
+          id: d.contract?.freelancerProfile?.id,
+          name: `${d.contract?.freelancerProfile?.user?.firstName || ''} ${d.contract?.freelancerProfile?.user?.lastName || ''}`.trim() || 'Freelancer',
+          email: d.contract?.freelancerProfile?.user?.email || ''
+        }
+      },
+      openedBy: {
+        id: d.initiator?.id,
+        name: `${d.initiator?.firstName || ''} ${d.initiator?.lastName || ''}`.trim() || d.initiator?.email,
+        email: d.initiator?.email
+      }
+    }));
 
     return {
       disputes,
@@ -416,9 +561,9 @@ export class AdminService {
         where: { id: disputeId },
         data: {
           status: 'RESOLVED',
-          resolution,
-          resolutionNotes,
-          awardedTo: awardedTo || null
+          adminDecision: resolution || awardedTo || 'RESOLVED',
+          resolutionNotes: resolutionNotes || '',
+          resolvedAt: new Date()
         }
       });
 
@@ -437,7 +582,7 @@ export class AdminService {
       return resolved;
     });
 
-    await this.logAudit(adminId, 'RESOLVE_DISPUTE', 'Dispute', disputeId, {
+    await this.logAudit(adminId, 'UPDATE', 'Dispute', disputeId, {
       contractId: dispute.contractId,
       resolution,
       resolutionNotes,
@@ -456,7 +601,7 @@ export class AdminService {
 
   static async createCategory(data, adminId) {
     const category = await prisma.category.create({ data });
-    await this.logAudit(adminId, 'CREATE_CATEGORY', 'Category', category.id, { name: category.name });
+    await this.logAudit(adminId, 'CREATE', 'Category', category.id, { name: category.name });
     return category;
   }
 
@@ -465,13 +610,13 @@ export class AdminService {
       where: { id },
       data
     });
-    await this.logAudit(adminId, 'UPDATE_CATEGORY', 'Category', id, data);
+    await this.logAudit(adminId, 'UPDATE', 'Category', id, data);
     return category;
   }
 
   static async deleteCategory(id, adminId) {
     const deleted = await prisma.category.delete({ where: { id } });
-    await this.logAudit(adminId, 'DELETE_CATEGORY', 'Category', id, { name: deleted.name });
+    await this.logAudit(adminId, 'UPDATE', 'Category', id, { name: deleted.name });
     return deleted;
   }
 
@@ -484,13 +629,13 @@ export class AdminService {
 
   static async createSkill(data, adminId) {
     const skill = await prisma.skill.create({ data });
-    await this.logAudit(adminId, 'CREATE_SKILL', 'Skill', skill.id, { name: skill.name });
+    await this.logAudit(adminId, 'CREATE', 'Skill', skill.id, { name: skill.name });
     return skill;
   }
 
   static async deleteSkill(id, adminId) {
     const deleted = await prisma.skill.delete({ where: { id } });
-    await this.logAudit(adminId, 'DELETE_SKILL', 'Skill', id, { name: deleted.name });
+    await this.logAudit(adminId, 'UPDATE', 'Skill', id, { name: deleted.name });
     return deleted;
   }
 
@@ -502,7 +647,7 @@ export class AdminService {
     if (action && action !== 'ALL') where.action = action;
     if (entity && entity !== 'ALL') where.entity = entity;
 
-    const [total, logs] = await Promise.all([
+    const [total, rawLogs] = await Promise.all([
       prisma.auditLog.count({ where }),
       prisma.auditLog.findMany({
         where,
@@ -510,10 +655,18 @@ export class AdminService {
         take: Number(limit),
         orderBy: { createdAt: 'desc' },
         include: {
-          user: { select: { id: true, name: true, email: true, role: true } }
+          user: { select: { id: true, firstName: true, lastName: true, email: true, role: true } }
         }
       })
     ]);
+
+    const logs = rawLogs.map(l => ({
+      ...l,
+      user: l.user ? {
+        ...l.user,
+        name: `${l.user.firstName || ''} ${l.user.lastName || ''}`.trim() || l.user.email
+      } : null
+    }));
 
     return {
       logs,

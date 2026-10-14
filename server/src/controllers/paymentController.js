@@ -29,9 +29,22 @@ export class PaymentController {
     }
   }
 
+  static async checkout(req, res, next) {
+    try {
+      const payment = await PaymentService.processPayment(req.user.id, req.body);
+      return ApiResponse.success(res, {
+        status: payment.status,
+        payment,
+        ...payment,
+      }, 'Payment processed successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getUserPayments(req, res, next) {
     try {
-      const payments = await PaymentService.getUserPayments(req.user.id, req.user.role);
+      const payments = await PaymentService.getUserPayments(req.user.id, req.user.role, req.query);
       return ApiResponse.success(res, payments, 'Payments history retrieved');
     } catch (error) {
       next(error);

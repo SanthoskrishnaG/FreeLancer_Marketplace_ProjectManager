@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../api/adminApi.js';
 import { DataTable } from '../../components/common/DataTable.jsx';
 import { Badge } from '../../components/common/Badge.jsx';
-import { CheckCircle2, XCircle, ShieldCheck, Star } from 'lucide-react';
+import { CheckCircle2, XCircle, ShieldCheck, Star, Award, Sparkles } from 'lucide-react';
 
 export const AdminFreelancersPage = () => {
   const [profiles, setProfiles] = useState([]);
@@ -36,18 +36,18 @@ export const AdminFreelancersPage = () => {
   const columns = [
     {
       key: 'user',
-      header: 'Freelancer',
+      header: 'Freelancer Engineer',
       sortable: true,
       render: (row) => (
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <img
             src={row.user?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${row.user?.name}`}
             alt={row.user?.name}
-            className="w-8 h-8 rounded-lg object-cover ring-1 ring-gray-700"
+            className="w-9 h-9 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-blue-500/30"
           />
           <div>
-            <div className="font-semibold text-white">{row.user?.name}</div>
-            <div className="text-xs text-gray-400">{row.title || 'Developer'}</div>
+            <div className="font-semibold text-slate-900 dark:text-[#F8FAFC]">{row.user?.name}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">{row.title || 'Full-Stack Developer'}</div>
           </div>
         </div>
       ),
@@ -57,30 +57,34 @@ export const AdminFreelancersPage = () => {
       header: 'Hourly Rate',
       sortable: true,
       render: (row) => (
-        <span className="font-bold text-emerald-400">${row.hourlyRate || 45}/hr</span>
+        <span className="font-bold text-slate-900 dark:text-[#F8FAFC] font-mono">
+          ₹{row.hourlyRate || 800}/hr
+        </span>
       ),
     },
     {
       key: 'rating',
-      header: 'Rating / Jobs',
+      header: 'Reputation / Deliveries',
       render: (row) => (
-        <div className="flex items-center gap-1.5 text-xs text-amber-400">
+        <div className="flex items-center gap-1.5 text-xs text-amber-500 font-semibold font-mono">
           <Star className="w-3.5 h-3.5 fill-current" />
           <span>{Number(row.rating || 5.0).toFixed(1)}</span>
-          <span className="text-gray-500">({row.completedProjectsCount || 0})</span>
+          <span className="text-slate-400 dark:text-slate-500 font-normal">
+            ({row.completedProjectsCount || 0} jobs)
+          </span>
         </div>
       ),
     },
     {
       key: 'isVerified',
-      header: 'Verification Status',
+      header: 'Verification Tier',
       sortable: true,
       render: (row) => (
         <span
-          className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+          className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${
             row.isVerified
-              ? 'bg-sky-500/10 text-sky-400 border-sky-500/20'
-              : 'bg-gray-800 text-gray-400 border-gray-700'
+              ? 'bg-blue-500/10 text-[#3B82F6] dark:text-[#60A5FA] border-blue-500/20'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
           }`}
         >
           {row.isVerified ? (
@@ -100,10 +104,10 @@ export const AdminFreelancersPage = () => {
       render: (row) => (
         <button
           onClick={() => handleToggleVerification(row.id, row.isVerified)}
-          className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm ${
             row.isVerified
-              ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30'
-              : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30'
+              ? 'bg-white dark:bg-[#111726] hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50'
+              : 'btn-electric text-white'
           }`}
         >
           {row.isVerified ? (
@@ -123,11 +127,18 @@ export const AdminFreelancersPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-white">Freelancer Verification Queue</h1>
-        <p className="text-xs text-gray-400 mt-0.5">
-          Review talent qualifications, background credentials, and award the blue verification badge.
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="border-b border-slate-200/80 dark:border-slate-800/80 pb-5">
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[#3B82F6] dark:text-[#60A5FA] text-xs font-mono font-medium mb-2">
+          <Award className="w-3.5 h-3.5" />
+          <span>TALENT VERIFICATION & CLEARANCE</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
+          Freelancer Talent Moderation
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Review developer portfolio submissions, verify engineering credentials, and grant verified status badges.
         </p>
       </div>
 
@@ -140,3 +151,5 @@ export const AdminFreelancersPage = () => {
     </div>
   );
 };
+
+export default AdminFreelancersPage;

@@ -6,13 +6,12 @@ import { Skeleton } from '../../components/common/Skeleton.jsx';
 import { EmptyState } from '../../components/common/EmptyState.jsx';
 import {
   Search,
-  SlidersHorizontal,
   Briefcase,
-  DollarSign,
-  Calendar,
   Users,
-  Sparkles,
+  Layers,
   ArrowRight,
+  SlidersHorizontal,
+  X,
 } from 'lucide-react';
 
 export const ProjectMarketplacePage = () => {
@@ -53,44 +52,52 @@ export const ProjectMarketplacePage = () => {
       }
     };
 
-    const debounce = setTimeout(fetchProjects, 300);
+    const debounce = setTimeout(fetchProjects, 250);
     return () => clearTimeout(debounce);
   }, [search, selectedCategory, selectedLevel]);
 
+  const hasActiveFilters = Boolean(search || selectedCategory || selectedLevel);
+
+  const resetFilters = () => {
+    setSearch('');
+    setSelectedCategory('');
+    setSelectedLevel('');
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 bg-slate-50 min-h-screen">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       {/* Header */}
-      <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold mb-3">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-          <span>Verified Opportunities</span>
+      <div className="border-b border-slate-200/80 dark:border-blue-500/15 pb-5">
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono tracking-wider font-semibold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-500/30 mb-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+          <span>ESCROW PROTECTED CONTRACTS</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-          Explore AI-Scoped Projects
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
+          Explore Projects & <span className="gradient-cyber-text">Contracts</span>
         </h1>
-        <p className="text-sm text-slate-500 mt-1 max-w-2xl">
-          Browse verified contracts with pre-defined milestones, funded escrow protection, and direct client collaboration.
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
+          Explore open opportunities with automated escrow milestones, verified clients, and instant collaboration.
         </p>
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center gap-3">
+      {/* Cyber Search & Filters Bar */}
+      <div className="cyber-card p-3.5 rounded-xl border border-slate-200 dark:border-blue-500/20 bg-white dark:bg-[#111726]/90 shadow-sm flex flex-col md:flex-row items-stretch md:items-center gap-2.5">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 dark:text-blue-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by keywords, title, tech stack..."
-            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+            placeholder="Search projects by title, stack, or keywords..."
+            className="w-full pl-9 pr-3.5 py-2 bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-blue-500/20 rounded-lg text-xs text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:bg-white dark:focus:bg-[#0D1220] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:border-indigo-600"
+            className="bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-blue-500/20 rounded-lg px-3 py-2 text-xs text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:border-blue-500"
           >
             <option value="">All Categories</option>
             {categories.map((c) => (
@@ -103,27 +110,36 @@ export const ProjectMarketplacePage = () => {
           <select
             value={selectedLevel}
             onChange={(e) => setSelectedLevel(e.target.value)}
-            className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:border-indigo-600"
+            className="bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-blue-500/20 rounded-lg px-3 py-2 text-xs text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:border-blue-500"
           >
             <option value="">All Levels</option>
             <option value="ENTRY">Entry Level</option>
             <option value="INTERMEDIATE">Intermediate</option>
             <option value="EXPERT">Expert</option>
           </select>
+
+          {hasActiveFilters && (
+            <button
+              onClick={resetFilters}
+              className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-blue-900/30 transition-colors"
+              title="Clear Filters"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Projects Grid */}
+      {/* Projects List */}
       {loading ? (
-        <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-              <Skeleton className="w-1/3 h-6" />
-              <Skeleton className="w-full h-12" />
-              <div className="flex gap-4">
-                <Skeleton className="w-24 h-4" />
-                <Skeleton className="w-24 h-4" />
-                <Skeleton className="w-24 h-4" />
+        <div className="space-y-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="cyber-card p-5 rounded-xl border border-slate-200 dark:border-blue-500/15 bg-white dark:bg-[#111726]/80 space-y-3">
+              <Skeleton className="w-1/3 h-5" />
+              <Skeleton className="w-full h-10" />
+              <div className="flex gap-3">
+                <Skeleton className="w-20 h-4" />
+                <Skeleton className="w-20 h-4" />
               </div>
             </div>
           ))}
@@ -131,41 +147,59 @@ export const ProjectMarketplacePage = () => {
       ) : projects.length === 0 ? (
         <EmptyState
           icon={Briefcase}
-          title="No projects found"
-          description="There are currently no projects matching your search criteria. Try modifying your filters."
+          title="No matching projects found"
+          description={
+            hasActiveFilters
+              ? 'No open opportunities matched your current search filters. Try clearing or broadening them.'
+              : 'There are currently no open projects published on the marketplace.'
+          }
+          action={
+            hasActiveFilters && (
+              <button
+                onClick={resetFilters}
+                className="px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-blue-500/30 text-xs font-medium text-slate-700 dark:text-blue-300 hover:bg-slate-50 dark:hover:bg-blue-950/40"
+              >
+                Clear Search Filters
+              </button>
+            )
+          }
         />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
+          <div className="text-xs text-slate-500 dark:text-[#94A3B8] font-medium px-1 flex items-center justify-between">
+            <span>Showing <span className="font-semibold text-slate-800 dark:text-[#F8FAFC]">{projects.length}</span> active opportunity{projects.length !== 1 ? 's' : ''}</span>
+          </div>
+
           {projects.map((project) => (
             <div
               key={project.id}
-              className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300 hover:shadow-md transition-all duration-200 group"
+              className="cyber-card p-5 sm:p-6 rounded-xl border border-slate-200/90 dark:border-blue-500/15 bg-white dark:bg-[#111726]/85 hover:border-blue-500/40 dark:hover:border-blue-500/40 transition-all group"
             >
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                <div className="space-y-2.5 flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-base font-semibold text-slate-900 dark:text-[#F8FAFC] group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       <Link to={`/projects/${project.id}`}>{project.title}</Link>
-                    </h3>
+                    </h2>
                     <Badge variant={project.status} />
                     {project.category && (
-                      <span className="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                      <span className="text-[11px] font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 px-2.5 py-0.5 rounded-md border border-blue-200 dark:border-blue-500/30">
                         {project.category.name}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
                     {project.description}
                   </p>
 
                   {/* Skills tags */}
                   {project.skills && project.skills.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
                       {project.skills.map((s, idx) => (
                         <span
                           key={idx}
-                          className="text-[11px] font-medium text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100"
+                          className="text-[11px] font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-[#0D1220] border border-slate-200 dark:border-blue-500/20 px-2 py-0.5 rounded"
                         >
                           {s.skill?.name || s.name}
                         </span>
@@ -173,39 +207,38 @@ export const ProjectMarketplacePage = () => {
                     </div>
                   )}
 
-                  {/* Meta details */}
-                  <div className="flex flex-wrap items-center gap-6 pt-2 text-xs text-slate-500">
-                    <span className="flex items-center gap-1.5 font-bold text-slate-900">
-                      <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
-                      ${Number(project.budget).toLocaleString()} Fixed
+                  {/* Metadata Row */}
+                  <div className="flex flex-wrap items-center gap-5 pt-1 text-xs text-slate-500 dark:text-[#94A3B8]">
+                    <span className="font-bold text-slate-900 dark:text-emerald-400">
+                      ₹{Number(project.budget).toLocaleString('en-IN')} <span className="font-normal text-slate-500 dark:text-slate-400 text-[11px]">Fixed</span>
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <Briefcase className="w-3.5 h-3.5 text-indigo-600" />
-                      {project.experienceLevel} Level
+                      <Briefcase className="w-3.5 h-3.5 text-blue-500" />
+                      {project.experienceLevel || 'Intermediate'} Level
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-sky-600" />
+                      <Users className="w-3.5 h-3.5 text-purple-400" />
                       {project._count?.proposals || 0} Proposals
                     </span>
-                    {project.milestones && (
-                      <span className="flex items-center gap-1.5 text-indigo-600 font-medium">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        {project.milestones.length} AI Milestones
+                    {project.milestones && project.milestones.length > 0 && (
+                      <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-medium">
+                        <Layers className="w-3.5 h-3.5" />
+                        {project.milestones.length} Milestone Phases
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="flex md:flex-col items-center md:items-end justify-between shrink-0 gap-3">
-                  <div className="text-xs text-slate-500">
-                    Posted by <span className="text-slate-800 font-semibold">{project.client?.name || 'Verified Client'}</span>
+                <div className="flex md:flex-col items-center md:items-end justify-between shrink-0 gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-blue-500/10">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    Client: <span className="text-slate-800 dark:text-white font-medium">{project.client?.name || 'Verified Client'}</span>
                   </div>
                   <Link
                     to={`/projects/${project.id}`}
-                    className="px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200/80 font-semibold text-xs transition-all flex items-center gap-1.5"
+                    className="btn-electric px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5"
                   >
-                    <span>View Project</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>View & Apply</span>
+                    <ArrowRight className="w-3 h-3" />
                   </Link>
                 </div>
               </div>

@@ -6,6 +6,7 @@ const router = Router();
 
 router.use(authenticate);
 
+router.get('/my-contracts', ContractController.getUserContracts);
 router.get('/', ContractController.getUserContracts);
 router.get('/:id', ContractController.getContractById);
 router.post('/:id/complete', ContractController.completeContract);

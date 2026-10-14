@@ -16,6 +16,7 @@ import {
   Clock,
   Layers
 } from 'lucide-react';
+import { BrandLogo } from '../../components/common/BrandLogo.jsx';
 
 export const RegisterPage = () => {
   const [role, setRole] = useState('CLIENT');
@@ -26,7 +27,7 @@ export const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [title, setTitle] = useState('');
-  const [hourlyRate, setHourlyRate] = useState('45');
+  const [hourlyRate, setHourlyRate] = useState('800');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -35,7 +36,7 @@ export const RegisterPage = () => {
 
   // Password strength calculation
   const getPasswordStrength = (pwd) => {
-    if (!pwd) return { score: 0, label: '', color: 'bg-slate-200' };
+    if (!pwd) return { score: 0, label: '', color: 'bg-slate-200 dark:bg-slate-700' };
     let score = 0;
     if (pwd.length >= 6) score++;
     if (pwd.length >= 10) score++;
@@ -79,7 +80,7 @@ export const RegisterPage = () => {
         role,
         ...(role === 'FREELANCER' && {
           title: title.trim() || 'Professional Consultant',
-          hourlyRate: Number(hourlyRate) || 45,
+          hourlyRate: Number(hourlyRate) || 800,
         }),
       };
 
@@ -104,79 +105,61 @@ export const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex flex-col justify-center relative">
       <div className="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         
         {/* Left: Brand Presentation */}
         <div className="lg:col-span-5 space-y-6 lg:pr-4">
-          <Link to="/" className="inline-flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-500/20 text-white">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <span className="text-2xl font-black tracking-tight text-slate-900">
-              WorkPulse<span className="text-indigo-600">.ai</span>
-            </span>
-          </Link>
+          <BrandLogo size="lg" to="/" />
 
           <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-              Turn Ideas Into <span className="text-indigo-600">Delivered Work.</span>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-[#F8FAFC] tracking-tight leading-tight font-display">
+              Turn Ideas Into <span className="gradient-cyber-text">Delivered Work.</span>
             </h1>
-            <p className="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p className="mt-3 text-sm sm:text-base text-slate-600 dark:text-[#94A3B8] leading-relaxed">
               AI-powered project planning and smarter freelance collaboration with escrow-backed milestones.
             </p>
           </div>
 
           <div className="space-y-4 pt-2">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
+              <div className="w-9 h-9 rounded-xl bg-[#3B82F6]/10 border border-[#3B82F6]/30 flex items-center justify-center text-[#3B82F6] shrink-0 mt-0.5 shadow-[0_0_12px_rgba(59,130,246,0.15)]">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-slate-900">AI-Powered Milestones</h4>
-                <p className="text-xs text-slate-500">Generate scopes, deliverable breakdowns, and budgets in seconds.</p>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-[#F8FAFC]">AI-Powered Milestones</h4>
+                <p className="text-xs text-slate-500 dark:text-[#94A3B8]">Generate scopes, deliverable breakdowns, and budgets in seconds via Groq LPU.</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 mt-0.5">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shrink-0 mt-0.5 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-slate-900">Escrow Milestone Protection</h4>
-                <p className="text-xs text-slate-500">Funds are held safely and released only upon client approval.</p>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-[#F8FAFC]">Escrow Milestone Protection</h4>
+                <p className="text-xs text-slate-500 dark:text-[#94A3B8]">Funds are held safely in escrow and released only upon client review and sign-off.</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600 shrink-0 mt-0.5">
+              <div className="w-9 h-9 rounded-xl bg-[#8B5CF6]/10 border border-[#8B5CF6]/30 flex items-center justify-center text-[#8B5CF6] shrink-0 mt-0.5 shadow-[0_0_12px_rgba(139,92,246,0.15)]">
                 <Clock className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-slate-900">Collaborative Workflow</h4>
-                <p className="text-xs text-slate-500">Real-time messaging, automated invoicing, and live progress tracking.</p>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-[#F8FAFC]">Collaborative Workflow</h4>
+                <p className="text-xs text-slate-500 dark:text-[#94A3B8]">Real-time messaging, automated invoicing, and live stopwatch tracking.</p>
               </div>
             </div>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-3">
-            <div className="flex -space-x-2">
-              <div className="w-7 h-7 rounded-full bg-indigo-500 text-[10px] text-white flex items-center justify-center font-bold ring-2 ring-white">AM</div>
-              <div className="w-7 h-7 rounded-full bg-violet-500 text-[10px] text-white flex items-center justify-center font-bold ring-2 ring-white">SK</div>
-              <div className="w-7 h-7 rounded-full bg-emerald-500 text-[10px] text-white flex items-center justify-center font-bold ring-2 ring-white">JD</div>
-            </div>
-            <p className="text-xs text-slate-600 font-medium">
-              Trusted by 10,000+ businesses and verified independent consultants.
-            </p>
           </div>
         </div>
 
         {/* Right: Registration Card */}
         <div className="lg:col-span-7">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 p-6 sm:p-8">
+          <div className="bg-white dark:bg-[#111726] rounded-2xl border border-slate-200 dark:border-[#3B82F6]/20 shadow-xl dark:shadow-[0_4px_30px_rgba(0,0,0,0.6)] p-6 sm:p-8 transition-colors">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Create your account</h2>
-              <p className="text-xs text-slate-500 mt-1">Choose how you want to use WorkPulse AI</p>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-[#F8FAFC] tracking-tight font-display">Create Your Account</h2>
+              <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1">Choose how you want to use WorkPulse AI</p>
             </div>
 
             {/* Account Type Selection Cards */}
@@ -186,18 +169,18 @@ export const RegisterPage = () => {
                 onClick={() => setRole('CLIENT')}
                 className={`p-4 rounded-xl border text-left transition-all relative ${
                   role === 'CLIENT'
-                    ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-600/10'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                    ? 'border-[#3B82F6] bg-[#3B82F6]/10 dark:bg-[#3B82F6]/15 ring-2 ring-[#3B82F6]/25 shadow-[0_0_15px_rgba(59,130,246,0.15)]'
+                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#0D1220]'
                 }`}
               >
                 {role === 'CLIENT' && (
-                  <CheckCircle2 className="w-4 h-4 text-indigo-600 absolute top-3 right-3" />
+                  <CheckCircle2 className="w-4 h-4 text-[#3B82F6] absolute top-3 right-3" />
                 )}
-                <div className="w-8 h-8 rounded-lg bg-indigo-100/80 text-indigo-600 flex items-center justify-center mb-2">
+                <div className="w-9 h-9 rounded-lg bg-[#3B82F6]/15 text-[#3B82F6] flex items-center justify-center mb-2">
                   <Briefcase className="w-4 h-4" />
                 </div>
-                <h3 className="text-sm font-bold text-slate-900">Client</h3>
-                <p className="text-xs text-slate-500 mt-0.5">I want to hire talented professionals</p>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-[#F8FAFC]">Client Workspace</h3>
+                <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">I want to scope projects & hire talented professionals</p>
               </button>
 
               <button
@@ -205,24 +188,24 @@ export const RegisterPage = () => {
                 onClick={() => setRole('FREELANCER')}
                 className={`p-4 rounded-xl border text-left transition-all relative ${
                   role === 'FREELANCER'
-                    ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-600/10'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                    ? 'border-[#8B5CF6] bg-[#8B5CF6]/10 dark:bg-[#8B5CF6]/15 ring-2 ring-[#8B5CF6]/25 shadow-[0_0_15px_rgba(139,92,246,0.15)]'
+                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#0D1220]'
                 }`}
               >
                 {role === 'FREELANCER' && (
-                  <CheckCircle2 className="w-4 h-4 text-indigo-600 absolute top-3 right-3" />
+                  <CheckCircle2 className="w-4 h-4 text-[#8B5CF6] absolute top-3 right-3" />
                 )}
-                <div className="w-8 h-8 rounded-lg bg-violet-100/80 text-violet-600 flex items-center justify-center mb-2">
+                <div className="w-9 h-9 rounded-lg bg-[#8B5CF6]/15 text-[#8B5CF6] flex items-center justify-center mb-2">
                   <Layers className="w-4 h-4" />
                 </div>
-                <h3 className="text-sm font-bold text-slate-900">Freelancer</h3>
-                <p className="text-xs text-slate-500 mt-0.5">I want to find projects and grow my career</p>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-[#F8FAFC]">Freelancer Suite</h3>
+                <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">I want to bid on projects & deliver high-value work</p>
               </button>
             </div>
 
             {/* Error Banner */}
             {error && (
-              <div className="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5 leading-relaxed animate-fadeIn">
+              <div className="mb-5 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/50 text-rose-700 dark:text-rose-400 text-xs flex items-start gap-2.5 leading-relaxed animate-fadeIn">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
@@ -230,7 +213,7 @@ export const RegisterPage = () => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Full Name</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Full Name</label>
                 <div className="relative">
                   <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -239,13 +222,13 @@ export const RegisterPage = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Santhoskrishna G"
-                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Work Email</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Work Email</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -254,14 +237,14 @@ export const RegisterPage = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@company.com"
-                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-all"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
@@ -271,12 +254,12 @@ export const RegisterPage = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="At least 6 characters"
-                      className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                      className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -284,7 +267,7 @@ export const RegisterPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Confirm Password</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Confirm Password</label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
@@ -294,12 +277,12 @@ export const RegisterPage = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter password"
-                      className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                      className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -311,13 +294,13 @@ export const RegisterPage = () => {
               {password && (
                 <div className="pt-1">
                   <div className="flex items-center justify-between mb-1 text-[11px]">
-                    <span className="text-slate-500">Password Strength:</span>
-                    <span className="font-semibold text-slate-700">{pwdStrength.label}</span>
+                    <span className="text-slate-500 dark:text-slate-400">Password Strength:</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">{pwdStrength.label}</span>
                   </div>
-                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden flex gap-1">
-                    <div className={`h-full flex-1 rounded-full ${pwdStrength.score >= 1 ? pwdStrength.color : 'bg-slate-200'}`} />
-                    <div className={`h-full flex-1 rounded-full ${pwdStrength.score >= 2 ? pwdStrength.color : 'bg-slate-200'}`} />
-                    <div className={`h-full flex-1 rounded-full ${pwdStrength.score >= 3 ? pwdStrength.color : 'bg-slate-200'}`} />
+                  <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex gap-1">
+                    <div className={`h-full flex-1 rounded-full ${pwdStrength.score >= 1 ? pwdStrength.color : 'bg-slate-200 dark:bg-slate-700'}`} />
+                    <div className={`h-full flex-1 rounded-full ${pwdStrength.score >= 2 ? pwdStrength.color : 'bg-slate-200 dark:bg-slate-700'}`} />
+                    <div className={`h-full flex-1 rounded-full ${pwdStrength.score >= 3 ? pwdStrength.color : 'bg-slate-200 dark:bg-slate-700'}`} />
                   </div>
                 </div>
               )}
@@ -326,24 +309,24 @@ export const RegisterPage = () => {
               {role === 'FREELANCER' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Professional Title</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Professional Title</label>
                     <input
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder="e.g. Senior AI Full Stack Engineer"
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Hourly Rate ($/hr)</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Hourly Rate ($/hr)</label>
                     <input
                       type="number"
                       min="10"
-                      max="500"
+                      max="1000"
                       value={hourlyRate}
                       onChange={(e) => setHourlyRate(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-[#F8FAFC] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-all"
                     />
                   </div>
                 </div>
@@ -352,7 +335,7 @@ export const RegisterPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-5 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-60 text-white font-semibold text-sm shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full mt-5 btn-electric text-sm py-3 px-4 shadow-[0_0_20px_rgba(59,130,246,0.3)]"
               >
                 {loading ? (
                   <>
@@ -368,10 +351,10 @@ export const RegisterPage = () => {
               </button>
             </form>
 
-            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-              <p className="text-xs text-slate-500">
+            <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 text-center">
+              <p className="text-xs text-slate-500 dark:text-[#94A3B8]">
                 Already have an account?{' '}
-                <Link to="/login" className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors">
+                <Link to="/login" className="text-[#3B82F6] hover:underline font-bold transition-colors">
                   Sign In
                 </Link>
               </p>

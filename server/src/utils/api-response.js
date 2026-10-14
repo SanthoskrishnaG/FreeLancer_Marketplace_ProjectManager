@@ -78,6 +78,22 @@ export class ApiResponse {
       },
     };
   }
+
+  static badRequest(res, message = 'Bad request', details = {}) {
+    return this.error(res, 400, message, 'BAD_REQUEST', details);
+  }
+
+  static unauthorized(res, message = 'Unauthorized', details = {}) {
+    return this.error(res, 401, message, 'UNAUTHORIZED', details);
+  }
+
+  static forbidden(res, message = 'Forbidden', details = {}) {
+    return this.error(res, 403, message, 'FORBIDDEN', details);
+  }
+
+  static notFound(res, message = 'Resource not found', details = {}) {
+    return this.error(res, 404, message, 'NOT_FOUND', details);
+  }
 }
 
 export default ApiResponse;

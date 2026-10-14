@@ -21,8 +21,14 @@ export const envConfig = {
     refreshExpiresIn: '7d',
   },
 
+  groq: {
+    apiKey: process.env.GROQ_API_KEY || '',
+    model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+  },
+
   openai: {
     apiKey: process.env.OPENAI_API_KEY || '',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
   },
 
   cloudinary: {

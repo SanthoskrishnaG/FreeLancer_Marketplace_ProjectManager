@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../../api/apiClient.js';
 import { contractApi } from '../../api/contractApi.js';
-import { Play, Square, Clock, Plus, Calendar, CheckCircle2 } from 'lucide-react';
+import {
+  Play,
+  Square,
+  Clock,
+  Plus,
+  Calendar,
+  CheckCircle2,
+  Timer,
+  Zap,
+  Activity,
+  Briefcase,
+} from 'lucide-react';
 import { DataTable } from '../../components/common/DataTable.jsx';
 
 export const TimeTrackingPage = () => {
@@ -63,7 +74,7 @@ export const TimeTrackingPage = () => {
     try {
       const res = await apiClient.post('/time-tracking/start', {
         contractId: selectedContractId,
-        description: description || 'Active development sprint',
+        description: description || 'Active engineering sprint',
       });
       if (res.data) {
         setActiveEntryId(res.data.id);
@@ -97,14 +108,13 @@ export const TimeTrackingPage = () => {
     try {
       await apiClient.post('/time-tracking/manual', {
         contractId: selectedContractId,
-        description: manualDescription || 'Development work',
+        description: manualDescription || 'Development sprint',
         durationHours: Number(manualHours),
       });
       setManualDescription('');
       setManualHours('1.5');
       const hRes = await apiClient.get('/time-tracking/my/summary');
       if (hRes.data?.entries) setHistory(hRes.data.entries);
-      alert('Manual time entry logged!');
     } catch (err) {
       alert(err.message || 'Failed to log manual time');
     }
@@ -117,31 +127,46 @@ export const TimeTrackingPage = () => {
     return `${h} : ${m} : ${s}`;
   };
 
+  const totalTrackedHours = history.reduce((sum, h) => sum + Number(h.durationHours || 0), 0);
+
   const columns = [
     {
       key: 'contract',
-      header: 'Contract',
-      render: (row) => <span className="font-semibold text-white">{row.contract?.title}</span>,
+      header: 'Contract & Client',
+      render: (row) => (
+        <div>
+          <div className="font-semibold text-slate-900 dark:text-[#F8FAFC]">
+            {row.contract?.title || 'Engineering Contract'}
+          </div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            Client: {row.contract?.client?.name || 'Verified Client'}
+          </div>
+        </div>
+      ),
     },
     {
       key: 'description',
-      header: 'Description',
-      render: (row) => <span className="text-xs text-gray-300">{row.description || 'Sprint task'}</span>,
+      header: 'Session Focus',
+      render: (row) => (
+        <span className="text-xs text-slate-600 dark:text-slate-300">
+          {row.description || 'Sprint task'}
+        </span>
+      ),
     },
     {
       key: 'duration',
       header: 'Duration',
       render: (row) => (
-        <span className="font-bold text-sky-400">
+        <span className="font-bold text-[#3B82F6] dark:text-[#60A5FA] font-mono text-xs">
           {Number(row.durationHours || 0).toFixed(2)} hrs
         </span>
       ),
     },
     {
       key: 'date',
-      header: 'Date Logged',
+      header: 'Logged At',
       render: (row) => (
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-slate-500 dark:text-slate-400">
           {new Date(row.createdAt).toLocaleDateString()}
         </span>
       ),
@@ -150,25 +175,37 @@ export const TimeTrackingPage = () => {
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-extrabold text-white">Time Tracking & Active Stopwatch</h1>
-        <p className="text-xs text-gray-400 mt-0.5">
-          Record billable project hours with live stopwatch timers or log retrospective work blocks.
+      {/* Page Header */}
+      <div className="border-b border-slate-200/80 dark:border-slate-800/80 pb-5">
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[#06B6D4] text-xs font-mono font-medium mb-2">
+          <Timer className="w-3.5 h-3.5" />
+          <span>REAL-TIME TELEMETRY TRACKER</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
+          Precision Time Tracking & Timesheets
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Log billable hours against active milestones, track development sprint intervals, and export audited work sessions.
         </p>
       </div>
 
-      {/* Stopwatch Widget */}
-      <div className="glass-card p-8 rounded-3xl border border-sky-500/30 text-center relative overflow-hidden bg-gradient-to-b from-sky-950/20 to-transparent">
-        <div className="max-w-md mx-auto space-y-6">
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Select Active Contract
+      {/* Cyber Stopwatch Console */}
+      <div className="cyber-card bg-white dark:bg-[#111726]/90 p-8 rounded-3xl border border-slate-200 dark:border-blue-500/25 shadow-xl relative overflow-hidden">
+        {/* Ambient subtle glow */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/5 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-500/5 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-md mx-auto space-y-6 relative z-10">
+          {/* Active Contract Selector */}
+          <div className="space-y-1.5 text-left">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              Target Contract Workstream
             </label>
             <select
               value={selectedContractId}
               onChange={(e) => setSelectedContractId(e.target.value)}
               disabled={timerRunning}
-              className="w-full p-2.5 bg-gray-800 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-sky-500"
+              className="w-full p-2.5 bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-[#F8FAFC] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
             >
               {contracts.length === 0 ? (
                 <option value="">No active contracts available</option>
@@ -182,54 +219,63 @@ export const TimeTrackingPage = () => {
             </select>
           </div>
 
+          {/* Description Input */}
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             disabled={timerRunning}
-            placeholder="What are you working on right now?"
-            className="w-full px-4 py-2 bg-gray-800/80 border border-gray-700 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-sky-500"
+            placeholder="Describe your current focus (e.g., Auth Middleware optimization)..."
+            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
           />
 
-          {/* Digital Timer Display */}
-          <div className="p-6 rounded-2xl bg-[#080d19] border border-sky-500/40 shadow-inner">
-            <div className="text-5xl font-mono font-black tracking-widest text-sky-400 select-none">
+          {/* Digital Timer Display Panel */}
+          <div className="p-7 rounded-2xl bg-[#080B12] border border-blue-500/30 shadow-[inset_0_2px_15px_rgba(0,0,0,0.8)] text-center relative">
+            {timerRunning && (
+              <div className="absolute top-3 right-4 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">
+                  RECORDING
+                </span>
+              </div>
+            )}
+            <div className="text-4xl sm:text-5xl font-mono font-bold tracking-widest text-[#00F0FF] select-none text-glow-cyan">
               {formatTime(elapsedSeconds)}
             </div>
-            <div className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">
-              Hours : Minutes : Seconds
+            <div className="text-[11px] text-slate-400 uppercase tracking-widest mt-2 font-mono">
+              HH : MM : SS
             </div>
           </div>
 
-          {/* Control buttons */}
-          <div className="flex items-center justify-center gap-4">
+          {/* Controls */}
+          <div className="flex items-center justify-center gap-4 pt-2">
             {!timerRunning ? (
               <button
                 onClick={handleStartTimer}
                 disabled={!selectedContractId}
-                className="px-8 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-sm shadow-xl shadow-emerald-600/30 transition-all flex items-center gap-2"
+                className="btn-electric px-8 py-3 rounded-xl text-white font-semibold text-xs shadow-lg flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-50"
               >
                 <Play className="w-4 h-4 fill-current" />
-                <span>Start Timer</span>
+                <span>Start Session Timer</span>
               </button>
             ) : (
               <button
                 onClick={handleStopTimer}
-                className="px-8 py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm shadow-xl shadow-rose-600/30 transition-all flex items-center gap-2 animate-pulse"
+                className="px-8 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs shadow-lg flex items-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98] animate-pulse"
               >
                 <Square className="w-4 h-4 fill-current" />
-                <span>Stop & Save Entry</span>
+                <span>Stop & Commit Session</span>
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Manual Time Entry Section */}
-      <div className="glass-card p-6 rounded-2xl border border-gray-800 space-y-4">
-        <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <Plus className="w-4 h-4 text-purple-400" />
-          <span>Manual Entry Log</span>
+      {/* Manual Entry Section */}
+      <div className="cyber-card bg-white dark:bg-[#111726]/85 p-6 rounded-2xl border border-slate-200 dark:border-blue-500/20 shadow-sm space-y-4">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-[#F8FAFC] flex items-center gap-2">
+          <Plus className="w-4 h-4 text-[#3B82F6]" />
+          <span>Manual Timesheet Submission</span>
         </h3>
         <form onSubmit={handleManualEntry} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input
@@ -237,8 +283,8 @@ export const TimeTrackingPage = () => {
             required
             value={manualDescription}
             onChange={(e) => setManualDescription(e.target.value)}
-            placeholder="Task description..."
-            className="sm:col-span-2 px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
+            placeholder="Retroactive sprint description..."
+            className="sm:col-span-2 px-3.5 py-2.5 bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
           />
           <div className="flex items-center gap-2">
             <input
@@ -248,29 +294,39 @@ export const TimeTrackingPage = () => {
               max="24"
               value={manualHours}
               onChange={(e) => setManualHours(e.target.value)}
-              className="w-24 px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
+              className="w-24 px-3 py-2.5 bg-slate-50 dark:bg-[#0D1220] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-[#F8FAFC] focus:outline-none focus:border-[#3B82F6]"
             />
-            <span className="text-xs text-gray-400">hours</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">hrs</span>
             <button
               type="submit"
-              className="ml-auto px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold"
+              className="ml-auto btn-electric px-4 py-2.5 rounded-xl text-xs font-semibold"
             >
-              Add
+              Log Time
             </button>
           </div>
         </form>
       </div>
 
-      {/* Log History */}
+      {/* History Table */}
       <div className="space-y-4">
-        <h3 className="text-base font-bold text-white">Logged Time Entries</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-bold text-slate-900 dark:text-[#F8FAFC] flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#3B82F6]" />
+            <span>Logged Time Sessions</span>
+          </h3>
+          <span className="text-xs font-mono text-[#3B82F6] dark:text-[#60A5FA] bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 font-semibold">
+            Total: {totalTrackedHours.toFixed(2)} Hours Logged
+          </span>
+        </div>
         <DataTable
           columns={columns}
           data={history}
           loading={loading}
-          searchPlaceholder="Search logged entries..."
+          searchPlaceholder="Search logged entries by task or contract..."
         />
       </div>
     </div>
   );
 };
+
+export default TimeTrackingPage;

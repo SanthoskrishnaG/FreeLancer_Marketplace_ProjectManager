@@ -32,8 +32,26 @@ export class ProjectController {
 
   static async getClientProjects(req, res, next) {
     try {
-      const result = await ProjectService.getClientProjects(req.user.id, req.query);
-      return ApiResponse.success(res, result, 'Client projects retrieved');
+      const projects = await ProjectService.getClientProjects(req.user.id, req.query);
+      return ApiResponse.success(res, { projects }, 'Projects retrieved');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async createProjectIdea(req, res, next) {
+    try {
+      const project = await ProjectService.createProjectIdea(req.user.id, req.body);
+      return ApiResponse.created(res, project, 'Project idea created and saved successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getFreelancerProjects(req, res, next) {
+    try {
+      const projects = await ProjectService.getFreelancerProjectIdeas(req.user.id);
+      return ApiResponse.success(res, { projects }, 'Freelancer project ideas retrieved');
     } catch (error) {
       next(error);
     }
@@ -99,4 +117,54 @@ export class ProjectController {
       next(error);
     }
   }
+
+  // ----------------------------------------------------
+  // Folders & Records
+  // ----------------------------------------------------
+
+  static async getProjectFolders(req, res, next) {
+    try {
+      const folders = await ProjectService.getProjectFolders(req.params.projectId, req.user.id);
+      return ApiResponse.success(res, folders, 'Project folders retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async createProjectFolder(req, res, next) {
+    try {
+      const folder = await ProjectService.createProjectFolder(req.params.projectId, req.user.id, req.body);
+      return ApiResponse.created(res, folder, 'Folder created successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteProjectFolder(req, res, next) {
+    try {
+      const result = await ProjectService.deleteProjectFolder(req.params.projectId, req.params.folderId, req.user.id);
+      return ApiResponse.success(res, result, 'Folder deleted successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async addProjectFile(req, res, next) {
+    try {
+      const file = await ProjectService.addProjectFile(req.params.projectId, req.params.folderId, req.user.id, req.body);
+      return ApiResponse.created(res, file, 'File added successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteProjectFile(req, res, next) {
+    try {
+      const result = await ProjectService.deleteProjectFile(req.params.projectId, req.params.folderId, req.params.fileId, req.user.id);
+      return ApiResponse.success(res, result, 'File removed successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
 }
+
