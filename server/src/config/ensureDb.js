@@ -1,4 +1,3 @@
-import EmbeddedPostgres from 'embedded-postgres';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import net from 'net';
@@ -25,33 +24,63 @@ function isPortOpen(port = 5432, host = '127.0.0.1') {
   });
 }
 
+/**
+ * Ensures a PostgreSQL database is available for local development.
+ * In PRODUCTION (Render / Cloud), this function is completely bypassed.
+ * The production environment connects strictly via the external DATABASE_URL provided by Render.
+ */
 export async function ensureDatabase() {
+  const isProduction =
+    process.env.NODE_ENV === 'production' ||
+    Boolean(process.env.RENDER) ||
+    Boolean(process.env.IS_RENDER);
+
+  const databaseUrl = process.env.DATABASE_URL || '';
+  const isRemoteDb =
+    databaseUrl &&
+    !databaseUrl.includes('localhost') &&
+    !databaseUrl.includes('127.0.0.1');
+
+  // In production or when connecting to any remote PostgreSQL host, DO NOT touch or start embedded Postgres
+  if (isProduction || isRemoteDb) {
+    return;
+  }
+
+  // Check if a local PostgreSQL service is already active on port 5432
   const isOpen = await isPortOpen(5432);
   if (isOpen) {
     return;
   }
 
-  console.log('📦 Starting local embedded PostgreSQL on port 5432...');
-  const dbDir = path.join(__dirname, '../../../.pgdata');
-  const pg = new EmbeddedPostgres({
-    databaseDir: dbDir,
-    user: 'postgres',
-    password: 'postgrespassword',
-    port: 5432,
-    persistent: true,
-  });
-
+  // Local development only: dynamically load embedded-postgres if available
   try {
-    await pg.initialise();
-  } catch (_e) {
-    // already initialized
-  }
+    const { default: EmbeddedPostgres } = await import('embedded-postgres');
+    console.log('📦 [Dev Only] Starting local embedded PostgreSQL on port 5432...');
+    const dbDir = path.join(__dirname, '../../../.pgdata');
+    const pg = new EmbeddedPostgres({
+      databaseDir: dbDir,
+      user: 'postgres',
+      password: 'postgrespassword',
+      port: 5432,
+      persistent: true,
+    });
 
-  await pg.start();
-  try {
-    await pg.createDatabase('freelancer_marketplace');
-  } catch (_e) {
-    // already created
+    try {
+      await pg.initialise();
+    } catch (_e) {
+      // already initialized
+    }
+
+    await pg.start();
+    try {
+      await pg.createDatabase('freelancer_marketplace');
+    } catch (_e) {
+      // already created
+    }
+    console.log('✅ [Dev Only] Local PostgreSQL active on port 5432');
+  } catch (err) {
+    console.warn('⚠️ [Dev Only] Embedded PostgreSQL skipped or not installed:', err.message);
   }
-  console.log('✅ Local PostgreSQL active on port 5432');
 }
+
+export default ensureDatabase;

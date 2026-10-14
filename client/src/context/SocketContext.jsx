@@ -22,9 +22,17 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    const newSocket = io(window.location.origin, {
+    // Resolve socket server URL: fallback to window.location.origin for local dev proxy
+    const rawSocketUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin;
+    const socketUrl = typeof rawSocketUrl === 'string' ? rawSocketUrl.trim().replace(/\/+$/, '') : window.location.origin;
+
+    const newSocket = io(socketUrl, {
       auth: { token },
       transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+      timeout: 10000,
     });
 
     socketRef.current = newSocket;
@@ -54,6 +62,10 @@ export const SocketProvider = ({ children }) => {
       setLatestMessage(message);
     });
 
+    newSocket.on('connect_error', (err) => {
+      console.warn('⚠️ WorkPulse WebSocket connection attempt warning:', err.message);
+    });
+
     return () => {
       newSocket.disconnect();
     };
@@ -79,3 +91,5 @@ export const useSocket = () => {
   }
   return context;
 };
+
+export default SocketContext;
